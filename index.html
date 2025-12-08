@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
@@ -6,6 +6,7 @@
     <title>依戀屬性快速測驗</title>
     <!-- 載入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 設定 Tailwind CSS 配置，使用 Inter 字體並加入簡單動畫 -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
@@ -40,25 +41,13 @@
 </head>
 <body class="min-h-screen p-4 flex items-start justify-center">
 
-
     <div id="quiz-container" class="w-full max-w-xl bg-white shadow-2xl rounded-xl p-6 md:p-8 mt-8">
         
         <!-- 標題區塊 -->
         <header class="text-center mb-8">
-            <h1 class="text-3xl font-extrabold text-gray-800">依戀屬性快速測驗</h1>
+            <h1 class="text-3xl font-extrabold text-gray-800">黑森林大叔依戀屬性快速測驗</h1>
             <p class="text-gray-500 mt-2">請根據您的真實感受，在以下陳述句中選擇您的同意程度。</p>
-            
-            <!-- 載入狀態 / 統計人數顯示 -->
-            <div id="loading-indicator" class="mt-4 text-indigo-500 font-semibold">
-                正在載入資料庫...
-            </div>
-            <div id="participant-count" class="hidden mt-4 p-2 bg-indigo-100 text-indigo-700 rounded-lg font-bold">
-                <!-- 統計人數將顯示在這裡 -->
-            </div>
-
-
         </header>
-
 
         <!-- 問卷問題區塊 -->
         <div id="questions-list">
@@ -67,21 +56,21 @@
         
         <!-- 按鈕區塊 -->
         <div id="quiz-control" class="mt-10">
-            <button id="submit-button" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow-lg hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/50" onclick="calculateAndSaveResult()" disabled>
-                查看並儲存我的依戀屬性
+            <button id="submit-button" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow-lg hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/50" onclick="calculateResult()">
+                查看我的依戀屬性
             </button>
         </div>
 
-
         <!-- 結果區塊 (預設隱藏) -->
         <div id="result-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
-            <div class="bg-white rounded-xl shadow-2xl p-6 md:p-8 w-full max-w-lg transform scale-100 transition-transform duration-300">
+            <div class="bg-white rounded-xl shadow-2xl p-6 md:p-8 w-full max-w-lg animate-fade-in transform scale-100 transition-transform duration-300">
                 <h2 class="text-3xl font-bold mb-4 text-center text-indigo-600">您的依戀屬性分析</h2>
                 
                 <div class="space-y-4">
                     <p class="text-lg font-semibold text-gray-700">您傾向於： <span id="attachment-style" class="text-indigo-600 font-extrabold text-2xl"></span></p>
                     
                     <div class="border-t border-gray-200 pt-4">
+                        <p class="text-sm text-gray-500">（以下是您在兩個維度上的得分，滿分皆為 50 分）</p>
                         <div class="flex justify-between items-center mt-2">
                             <span class="font-medium text-red-500">焦慮程度得分 (Anxiety):</span>
                             <span id="anxiety-score" class="font-bold text-red-500 text-xl">0</span>
@@ -95,12 +84,7 @@
                     <div id="style-description" class="bg-indigo-50 p-4 rounded-lg text-gray-800">
                         <!-- 依戀屬性描述會在這裡顯示 -->
                     </div>
-                    
-                    <div id="final-count" class="mt-4 p-3 bg-green-100 text-green-700 rounded-lg font-bold text-center">
-                        <!-- 最終統計人數將顯示在這裡 -->
-                    </div>
                 </div>
-
 
                 <button class="mt-6 w-full py-2 bg-gray-300 text-gray-800 font-bold rounded-lg hover:bg-gray-400 transition-colors" onclick="resetQuiz()">
                     重新測試
@@ -113,37 +97,12 @@
             請回答所有問題後再提交。
         </div>
 
-
     </div>
 
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-
-        // 設定 Firebase Log 級別為 Debug (用於偵錯)
-        setLogLevel('Debug');
-        
-        // 全域變數
-        let db;
-        let auth;
-        let userId = null;
-        let isAuthReady = false;
-
-
-        // 必須使用環境提供的變數
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-
-        const QUIZ_COLLECTION_PATH = `artifacts/${appId}/public/data/quiz_results`;
-
-
-        // 問卷問題定義 (略)
+    <script>
+        // 問卷問題定義
         const questions = [
+            // 焦慮型依戀 (Anxiety) - 10 題
             { id: 1, text: "我經常擔心伴侶不像我愛他們那樣愛我。", dimension: 'anxiety' },
             { id: 2, text: "我需要經常得到伴侶的肯定和保證，才能感到安心。", dimension: 'anxiety' },
             { id: 3, text: "當伴侶疏遠我時，我會感到非常不安，並試圖拉近距離。", dimension: 'anxiety' },
@@ -154,6 +113,8 @@
             { id: 8, text: "我渴望與伴侶建立非常親密且依賴的關係，最好是形影不離。", dimension: 'anxiety' },
             { id: 9, text: "我傾向於在衝突後主動修復關係，即使不完全是我的錯。", dimension: 'anxiety' },
             { id: 10, text: "我的情緒經常受到伴侶行為的影響而起伏不定。", dimension: 'anxiety' },
+            
+            // 逃避型依戀 (Avoidance) - 10 題
             { id: 11, text: "我認為在親密關係中保持獨立和個人空間非常重要。", dimension: 'avoidance' },
             { id: 12, text: "當關係變得太親密時，我會想拉開距離或暫時抽離。", dimension: 'avoidance' },
             { id: 13, text: "我不喜歡依賴別人，也不喜歡別人太依賴我。", dimension: 'avoidance' },
@@ -165,7 +126,6 @@
             { id: 19, text: "我會避免討論關係中可能引起情感波動的話題。", dimension: 'avoidance' },
             { id: 20, text: "我努力讓自己相信，我能夠處理生活中的所有問題，不需要他人幫助。", dimension: 'avoidance' }
         ];
-
 
         // 依戀屬性描述
         const descriptions = {
@@ -191,44 +151,111 @@
             }
         };
 
-
-        // DOM 元素參考
+        // 初始化問卷
         const questionsList = document.getElementById('questions-list');
         const submitButton = document.getElementById('submit-button');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        const participantCountDisplay = document.getElementById('participant-count');
 
+        function initQuiz() {
+            questionsList.innerHTML = '';
+            questions.forEach(q => {
+                const questionElement = document.createElement('div');
+                questionElement.className = 'question-card bg-gray-50 p-4 mb-4 rounded-lg border border-gray-200 transition-shadow duration-300 hover:shadow-md';
+                questionElement.innerHTML = `
+                    <p class="text-base font-semibold text-gray-800 mb-3">${q.id}. ${q.text}</p>
+                    <div class="flex justify-between text-sm text-gray-500 mb-2">
+                        <span>非常不同意 (1)</span>
+                        <span>非常同意 (5)</span>
+                    </div>
+                    <input type="range" min="1" max="5" value="3" data-id="${q.id}" data-dimension="${q.dimension}" class="slider" onchange="updateSliderValue(this)">
+                    <p class="text-right text-base font-bold text-indigo-600 mt-1" id="value-${q.id}">3</p>
+                `;
+                questionsList.appendChild(questionElement);
+            });
+        }
 
-        // 初始化 Firebase 和認證
-        async function initializeFirebase() {
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
+        // 更新滑塊顯示的數值
+        function updateSliderValue(slider) {
+            document.getElementById(`value-${slider.dataset.id}`).textContent = slider.value;
+        }
 
+        // 計算並顯示結果
+        function calculateResult() {
+            const sliders = document.querySelectorAll('.slider');
+            let totalAnxietyScore = 0;
+            let totalAvoidanceScore = 0;
+            let allAnswered = true;
 
-                // 處理認證狀態
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
+            // 確保所有滑塊都被操作過（儘管預設值為 3，但為了模擬正式提交前的檢查）
+            // 在本簡化模型中，所有滑塊都有預設值，所以總是已回答。
+            // 實際使用中可以檢查滑塊是否被操作。
+
+            sliders.forEach(slider => {
+                const score = parseInt(slider.value, 10);
+                if (slider.dataset.dimension === 'anxiety') {
+                    totalAnxietyScore += score;
+                } else if (slider.dataset.dimension === 'avoidance') {
+                    totalAvoidanceScore += score;
                 }
+            });
+
+            // 檢查是否所有問題都回答了 (在本例中因為有預設值，所以略過嚴格檢查)
+            if (!allAnswered) {
+                document.getElementById('error-message').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('error-message').classList.add('hidden');
+            }
+
+            // --- 依戀屬性分類邏輯 ---
+            // 總分範圍是 10 到 50 (10題 * 1分 到 10題 * 5分)
+            // 我們以中位數 30 作為高低分的臨界值 (10題 * 3分 = 30)
+
+            const THRESHOLD = 30; // 臨界值
+
+            const isHighAnxiety = totalAnxietyScore >= THRESHOLD;
+            const isHighAvoidance = totalAvoidanceScore >= THRESHOLD;
+
+            let resultKey;
+
+            if (!isHighAnxiety && !isHighAvoidance) {
+                resultKey = 'secure'; // 低焦慮, 低迴避
+            } else if (isHighAnxiety && !isHighAvoidance) {
+                resultKey = 'anxious'; // 高焦慮, 低迴避
+            } else if (!isHighAnxiety && isHighAvoidance) {
+                resultKey = 'avoidant'; // 低焦慮, 高迴避
+            } else {
+                resultKey = 'disorganized'; // 高焦慮, 高迴避
+            }
+            
+            // 顯示結果
+            const result = descriptions[resultKey];
+            document.getElementById('attachment-style').textContent = result.style;
+            document.getElementById('attachment-style').className = `font-extrabold text-2xl ${result.color}`;
+            document.getElementById('anxiety-score').textContent = totalAnxietyScore;
+            document.getElementById('avoidance-score').textContent = totalAvoidanceScore;
+            document.getElementById('style-description').innerHTML = `
+                <p class="font-bold text-lg mb-2 ${result.color}">${result.style} 特徵：</p>
+                <p>${result.description}</p>
+            `;
+
+            document.getElementById('result-modal').classList.remove('hidden');
+        }
+
+        // 重新開始測驗
+        function resetQuiz() {
+            document.getElementById('result-modal').classList.add('hidden');
+            initQuiz();
+        }
+
+        // 頁面載入時初始化
+        window.onload = initQuiz;
+    </script>
+
+</body>
+</html>
 
 
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        isAuthReady = true;
-                        console.log("Firebase 認證成功，使用者 ID:", userId);
-                        loadingIndicator.textContent = "資料庫連線成功。";
-                        submitButton.disabled = false; // 認證完成後啟用按鈕
-                        fetchParticipantCount(); // 認證成功後抓取總人數
-                    } else {
-                        console.error("Firebase 認證失敗，或使用者已登出。");
-                    }
-                });
-            } catch (error) {
-                console.error("Firebase 初始化或認證錯誤:", error);
+("Firebase 初始化或認證錯誤:", error);
                 loadingIndicator.textContent = `連線錯誤: ${error.message}`;
             }
         }
