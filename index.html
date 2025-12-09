@@ -57,9 +57,9 @@
         <!-- 商標顯示區 - 已替換為 SVG 佔位符確保顯示 -->
         <div class="text-center mb-6">
             <!-- 使用 SVG 虛擬 Logo 佔位符 -->
-            <div class="mx-auto w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mb-2 shadow-lg">
+            <img src="1000075381.png"  class="mx-auto w-32 h-auto object-contain mb-2">
                 <!-- 心理/分析相關的通用圖標 -->
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="1000075381.png"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.621h.001M20 7.835h.001M19.14 15.36L15 19.5M17 14l2-2m-2-2h-3v3M6 14V7a2 2 0 012-2h4l4 4v3m-6 4v3m4-3v3m2-12l4-4h4l-4 4"></path></svg>
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.621h.001M20 7.835h.001M19.14 15.36L15 19.5M17 14l2-2m-2-2h-3v3M6 14V7a2 2 0 012-2h4l4 4v3m-6 4v3m4-3v3m2-12l4-4h4l-4 4"></path></svg>
             </div>
             <h2 class="text-xl font-bold text-gray-800 tracking-widest">黑森林大叔</h2>
         </div>
@@ -167,7 +167,7 @@
         // 問卷問題定義 (共 20 題，每維度 10 題)
         const questions = [
             // 焦慮型依戀 (Anxiety) - 10 題
-            { id: 1, text: "我經常擔心伴侶不像我愛他們那樣愛我。", dimension: 'anxiety' },
+            { id: 1, text: "我經常擔心伴侶不像我愛他一樣愛我。", dimension: 'anxiety' },
             { id: 2, text: "我需要經常得到伴侶的肯定和保證，才能感到安心。", dimension: 'anxiety' },
             { id: 3, text: "當伴侶疏遠我時，我會感到非常不安，並試圖拉近距離。", dimension: 'anxiety' },
             { id: 4, text: "在關係中，我會付出很多，即使委屈自己，以確保關係穩定。", dimension: 'anxiety' },
@@ -194,25 +194,25 @@
         // 依戀屬性描述物件 (取自您提供的程式碼)
         const descriptions = {
             secure: {
-                style: "安全型依戀",
+                style: "安全型依戀 ",
                 subtitle: "您擁有正向的自我價值感，並在關係中感到安全與舒適。",
                 color: "text-green-600",
                 description: "恭喜您！安全型依戀者對親密關係抱持積極態度。您在關係中既能獨立自主，也能在需要時尋求支持。您相信自己值得被愛，也相信伴侶是可靠的。這有助於建立穩定、和諧的長期關係。"
             },
             anxious: {
-                style: "焦慮型依戀",
+                style: "焦慮型依戀 ",
                 subtitle: "您非常渴望親密，但常因擔心被拋棄而過度投入或擔憂。",
                 color: "text-orange-600",
                 description: "焦慮型依戀者渴望親密但又充滿不安全感。您可能容易患得患失，需要伴侶不斷地確認和保證。請嘗試學習**自我安撫**，並相信您的價值不依賴於伴侶的行為。"
             },
             avoidant: {
-                style: "逃避型依戀",
+                style: "逃避型依戀 ",
                 subtitle: "您傾向保持獨立和個人空間，對於過度親密感到不自在。",
                 color: "text-blue-600",
                 description: "逃避型依戀者高度重視獨立和個人空間。當關係變得親密時，您可能會傾向於拉開距離或迴避情感交流。請嘗試練習**情感表達**，允許自己在關係中展現脆弱，以建立更深層的連結。"
             },
             disorganized: {
-                style: "混亂型依戀",
+                style: "混亂型依戀 ",
                 subtitle: "您既渴望親密又害怕受傷，內心常有矛盾的拉扯與掙扎。",
                 color: "text-red-600",
                 description: "混亂型依戀者（又稱恐懼-逃避型）內心常有兩股力量在拉扯。您既渴望親密又害怕親密，這導致關係中的行為模式不穩定且充滿矛盾。這通常與童年複雜的依戀經驗有關。建議尋求**專業支持**，幫助建立更一致的內在安全感。"
