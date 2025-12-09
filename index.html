@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>依戀屬性專業分析測驗 - 黑森林大叔</title>
+    <!-- 引入 Tailwind CSS 進行排版 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- 引入 Chart.js 用於繪圖 -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #f0f2f5; }
+        
+        /* 滑塊樣式優化 */
         .slider { -webkit-appearance: none; width: 100%; height: 8px; background: #ddd; border-radius: 5px; outline: none; }
         .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; background: #4f46e5; border-radius: 50%; cursor: pointer; transition: 0.2s; }
         .slider::-webkit-slider-thumb:hover { transform: scale(1.1); }
@@ -21,32 +23,26 @@
             border: 2px solid #333;
             margin: 0 auto;
             background-image: 
-                linear-gradient(#ccc 1px, transparent 1px),
-                linear-gradient(90deg, #ccc 1px, transparent 1px);
-            background-size: 150px 150px;
+                linear-gradient(#e5e7eb 1px, transparent 1px),
+                linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+            background-size: 150px 150px; /* 四象限格線 */
             background-position: -2px -2px;
         }
-        .axis-label { position: absolute; font-size: 12px; color: #666; font-weight: bold; }
+        /* 軸線標籤 */
+        .axis-label { position: absolute; font-size: 12px; color: #666; font-weight: bold; padding: 2px 4px; background: rgba(255,255,255,0.8); border-radius: 4px; }
+        
+        /* 使用者落點 (紅點) */
         .dot {
             position: absolute;
             width: 16px;
             height: 16px;
-            background-color: #ef4444;
+            background-color: #ef4444; /* 紅色 */
             border: 2px solid white;
             border-radius: 50%;
-            transform: translate(-50%, 50%); /* 修正座標中心點 */
+            transform: translate(-50%, 50%); /* 修正中心點對齊 */
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
             transition: all 1s ease-out;
-        }
-        
-        /* 商標樣式 */
-        .brand-logo {
-            font-size: 1.5rem; /* 調整商標字體大小 */
-            font-weight: 700;   /* 粗體 */
-            color: #4f46e5;     /* 使用與主題一致的顏色 */
-            text-align: center;
-            margin-bottom: 1rem; /* 增加與標題的間距 */
-            letter-spacing: 0.1em; /* 增加字距 */
+            z-index: 10;
         }
     </style>
 </head>
@@ -54,25 +50,29 @@
 
     <div class="w-full max-w-2xl bg-white shadow-xl rounded-2xl p-6 md:p-10 my-8">
         
-        <!-- 商標 -->
-        <div class="brand-logo">
-            黑森林大叔
+        <!-- 商標顯示區 -->
+        <div class="text-center mb-6">
+            <!-- 請確保圖片檔案 1000075381.png 與此 html 檔在同一目錄下 -->
+            <img src="1000075381.png" alt="黑森林大叔" class="mx-auto w-32 h-auto object-contain mb-2">
+            <h2 class="text-xl font-bold text-gray-800 tracking-widest">黑森林大叔</h2>
         </div>
 
-        <header class="text-center mb-10">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">依戀屬性專業分析</h1>
-            <p class="text-gray-500">此版本修正了臨界值判定，並提供視覺化落點分析。</p>
+        <header class="text-center mb-10 border-b pb-6">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">依戀屬性專業分析</h1>
+            <p class="text-gray-500 text-sm">請依照真實感受回答，系統將為您進行落點分析。</p>
+            <p class="text-gray-500 text-sm">［本測試僅供參考，如需準確分析請洽專業人員諮詢］</p>
             
-            <div id="loading-indicator" class="mt-4 text-sm text-indigo-500 font-semibold animate-pulse">
-                正在連線至分析資料庫...
+            <div id="loading-indicator" class="mt-4 text-xs text-indigo-500 font-semibold animate-pulse">
+                資料庫連線中...
             </div>
-            <!-- 移除了累積人數顯示 -->
         </header>
 
+        <!-- 問題列表 -->
         <div id="questions-list" class="space-y-8">
-            <!-- 問題插入點 -->
+            <!-- JavaScript 將自動生成題目 -->
         </div>
         
+        <!-- 提交按鈕 -->
         <div class="mt-12">
             <button id="submit-button" class="w-full py-4 bg-indigo-600 text-white text-lg font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-all transform hover:-translate-y-1 disabled:bg-gray-400 disabled:cursor-not-allowed" onclick="calculateAndSaveResult()" disabled>
                 查看詳細分析報告
@@ -82,71 +82,72 @@
 
     </div>
 
-    <!-- 結果模態框 -->
+    <!-- 結果視窗 (Modal) -->
     <div id="result-modal" class="hidden fixed inset-0 bg-gray-900/90 flex items-center justify-center p-4 z-50 overflow-y-auto">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden my-8">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden my-8 relative">
             
-            <!-- 報告標題 -->
-            <div class="bg-indigo-600 p-6 text-center">
-                <!-- 結果頁面的商標 -->
-                <div class="brand-logo text-white mb-2" style="font-size: 1.2rem;">
-                    黑森林大叔
-                </div>
-                <h2 class="text-2xl font-bold text-white">您的依戀屬性分析報告</h2>
+            <!-- 關閉按鈕 -->
+            <button onclick="resetQuiz()" class="absolute top-4 right-4 text-white hover:text-gray-200 z-10">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <!-- 報告標頭 -->
+            <div class="bg-indigo-600 p-6 text-center text-white">
+                <p class="opacity-80 text-sm tracking-widest mb-1">黑森林大叔</p>
+                <h2 class="text-2xl font-bold">依戀屬性分析報告</h2>
             </div>
 
             <div class="p-6 md:p-8 space-y-6">
                 
-                <!-- 結果標題 -->
+                <!-- 分析結果標題 -->
                 <div class="text-center">
-                    <p class="text-gray-500 text-sm uppercase tracking-wide">分析結果</p>
-                    <h3 id="result-title" class="text-4xl font-extrabold text-gray-800 mt-1"></h3>
-                    <p id="result-subtitle" class="text-indigo-600 font-medium mt-2 text-lg"></p>
+                    <p class="text-gray-500 text-xs uppercase tracking-wide">您的依戀類型傾向</p>
+                    <h3 id="result-title" class="text-3xl font-extrabold text-gray-800 mt-1"></h3>
+                    <p id="result-subtitle" class="text-indigo-600 font-medium mt-2 text-base"></p>
                 </div>
 
                 <!-- 視覺化座標圖 -->
-                <div class="flex flex-col items-center justify-center py-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <p class="text-xs text-gray-400 mb-2">座標分佈圖</p>
-                    <div class="quadrant-grid relative">
+                <div class="flex flex-col items-center justify-center py-6 bg-gray-50 rounded-xl border border-gray-200">
+                    <p class="text-xs text-gray-400 mb-3 font-bold">您的心理落點座標圖</p>
+                    <div class="quadrant-grid relative bg-white shadow-inner">
                         <!-- 軸標籤 -->
-                        <span class="axis-label top-2 left-1/2 -translate-x-1/2">高焦慮</span>
-                        <span class="axis-label bottom-2 left-1/2 -translate-x-1/2">低焦慮</span>
-                        <span class="axis-label top-1/2 right-2 -translate-y-1/2">高迴避</span>
-                        <span class="axis-label top-1/2 left-2 -translate-y-1/2">低迴避</span>
+                        <span class="axis-label top-2 left-1/2 -translate-x-1/2 text-orange-600">高焦慮</span>
+                        <span class="axis-label bottom-2 left-1/2 -translate-x-1/2 text-green-600">低焦慮</span>
+                        <span class="axis-label top-1/2 right-2 -translate-y-1/2 text-blue-600">高迴避</span>
+                        <span class="axis-label top-1/2 left-2 -translate-y-1/2 text-green-600">低迴避</span>
                         
-                        <!-- 象限標籤 -->
-                        <span class="absolute top-8 right-8 text-xs text-red-300 font-bold">混亂型</span>
-                        <span class="absolute top-8 left-8 text-xs text-orange-300 font-bold">焦慮型</span>
-                        <span class="absolute bottom-8 right-8 text-xs text-blue-300 font-bold">逃避型</span>
-                        <span class="absolute bottom-8 left-8 text-xs text-green-300 font-bold">安全型</span>
+                        <!-- 象限名稱 -->
+                        <span class="absolute top-6 right-6 text-xs text-gray-300 font-bold pointer-events-none">混亂型</span>
+                        <span class="absolute top-6 left-6 text-xs text-gray-300 font-bold pointer-events-none">焦慮型</span>
+                        <span class="absolute bottom-6 right-6 text-xs text-gray-300 font-bold pointer-events-none">逃避型</span>
+                        <span class="absolute bottom-6 left-6 text-xs text-gray-300 font-bold pointer-events-none">安全型</span>
 
                         <!-- 使用者落點 -->
                         <div id="user-dot" class="dot" style="bottom: 50%; left: 50%;"></div>
                     </div>
+                    <p class="text-xs text-gray-400 mt-2">*紅點越接近中心，代表性格越趨於平衡安全</p>
                 </div>
 
-                <!-- 分數詳情 -->
+                <!-- 分數數值 -->
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-red-50 p-4 rounded-lg text-center">
-                        <p class="text-sm text-red-600 font-bold">焦慮指數 (Anxiety)</p>
-                        <p id="score-anxiety" class="text-3xl font-black text-red-700">0</p>
-                        <p class="text-xs text-red-400 mt-1">滿分 50</p>
+                    <div class="bg-red-50 p-3 rounded-lg text-center border border-red-100">
+                        <p class="text-xs text-red-500 font-bold mb-1">焦慮指數</p>
+                        <p id="score-anxiety" class="text-2xl font-black text-red-600">0</p>
+                        <p class="text-[10px] text-gray-400">分數越高代表越容易焦慮</p>
                     </div>
-                    <div class="bg-blue-50 p-4 rounded-lg text-center">
-                        <p class="text-sm text-blue-600 font-bold">迴避指數 (Avoidance)</p>
-                        <p id="score-avoidance" class="text-3xl font-black text-blue-700">0</p>
-                        <p class="text-xs text-blue-400 mt-1">滿分 50</p>
+                    <div class="bg-blue-50 p-3 rounded-lg text-center border border-blue-100">
+                        <p class="text-xs text-blue-500 font-bold mb-1">迴避指數</p>
+                        <p id="score-avoidance" class="text-2xl font-black text-blue-600">0</p>
+                        <p class="text-[10px] text-gray-400">分數越高代表越習慣逃避</p>
                     </div>
                 </div>
 
-                <!-- 文字解釋 -->
-                <div id="result-description" class="text-gray-700 leading-relaxed bg-gray-50 p-5 rounded-lg border-l-4 border-indigo-500">
-                    <!-- 描述 -->
+                <!-- 詳細文字解釋 -->
+                <div id="result-description" class="text-gray-700 text-sm leading-relaxed bg-gray-50 p-5 rounded-lg border-l-4 border-indigo-500 shadow-sm">
+                    <!-- JS 動態插入描述 -->
                 </div>
 
-                <!-- 移除了結果頁面的累積人數統計 -->
-
-                <button onclick="resetQuiz()" class="w-full py-3 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-colors">
+                <button onclick="resetQuiz()" class="w-full py-3 bg-gray-800 text-white font-bold rounded-lg hover:bg-gray-900 transition-colors shadow-lg">
                     重新測試
                 </button>
             </div>
@@ -156,18 +157,19 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 環境變數
+        // 環境變數設定
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        const QUIZ_COLLECTION_PATH = `artifacts/${appId}/public/data/quiz_results_v2`; // 使用 v2 區隔新舊資料
+        // 使用 v3 確保資料與舊版隔離，避免欄位衝突
+        const QUIZ_COLLECTION_PATH = `artifacts/${appId}/public/data/quiz_results_v3`;
 
         // 變數
         let db, auth, userId, isAuthReady = false;
 
-        // 問題庫 (維持不變)
+        // 題目資料庫
         const questions = [
             { id: 1, text: "我經常擔心伴侶不像我愛他們那樣愛我。", dimension: 'anxiety' },
             { id: 2, text: "我需要經常得到伴侶的肯定和保證，才能感到安心。", dimension: 'anxiety' },
@@ -191,29 +193,35 @@
             { id: 20, text: "我努力讓自己相信，我能夠處理生活中的所有問題，不需要他人幫助。", dimension: 'avoidance' }
         ];
 
-        // 初始化問卷
+        // 初始化題目介面
         const questionsList = document.getElementById('questions-list');
         questions.forEach(q => {
             const div = document.createElement('div');
-            div.className = "bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow";
+            div.className = "bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow";
             div.innerHTML = `
                 <div class="mb-4">
                     <span class="inline-block px-2 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded mb-2">Q${q.id}</span>
-                    <p class="text-lg font-medium text-gray-800">${q.text}</p>
+                    <p class="text-base font-medium text-gray-800">${q.text}</p>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <div class="flex justify-between text-xs text-gray-400 font-bold">
+                    <div class="flex justify-between text-xs text-gray-400 font-bold px-1">
                         <span>非常不同意</span>
                         <span>非常同意</span>
                     </div>
-                    <input type="range" min="1" max="5" value="3" data-dimension="${q.dimension}" class="slider" oninput="this.nextElementSibling.innerText = this.value">
-                    <div class="text-center text-indigo-600 font-bold text-xl mt-1">3</div>
+                    <div class="relative flex items-center">
+                        <input type="range" min="1" max="5" value="3" data-dimension="${q.dimension}" class="slider z-10" oninput="updateOutput(this)">
+                    </div>
+                    <div class="text-center text-indigo-600 font-bold text-lg mt-1 output-val">3</div>
                 </div>
             `;
             questionsList.appendChild(div);
         });
 
-        // Firebase 邏輯
+        window.updateOutput = function(el) {
+            el.parentElement.nextElementSibling.innerText = el.value;
+        }
+
+        // 初始化 Firebase (移除人數統計邏輯，僅保留登入)
         async function initFirebase() {
             try {
                 const app = initializeApp(firebaseConfig);
@@ -229,23 +237,25 @@
                         isAuthReady = true;
                         document.getElementById('loading-indicator').classList.add('hidden');
                         document.getElementById('submit-button').disabled = false;
-                        // 移除了 updateCount() 的調用
+                        // 注意：此處已完全移除 updateCount 的呼叫，避免錯誤
                     }
                 });
             } catch (e) {
                 console.error("Firebase Error", e);
-                document.getElementById('loading-indicator').innerText = "連線失敗，請重新整理頁面。";
+                document.getElementById('loading-indicator').innerText = "連線失敗，功能受限。";
             }
         }
 
-        // 移除了 updateCount() 函數
-
-        // 核心分析邏輯
+        // 核心分析與儲存邏輯
         window.calculateAndSaveResult = async function() {
-            if (!isAuthReady) return;
+            if (!isAuthReady) {
+                // 若未連線成功，仍允許計算顯示結果，但不儲存
+                console.warn("未連線至資料庫，僅顯示本機結果");
+            }
+            
             const btn = document.getElementById('submit-button');
             btn.disabled = true;
-            btn.innerText = "分析中...";
+            btn.innerText = "正在分析數據...";
 
             const sliders = document.querySelectorAll('.slider');
             let anxietySum = 0, avoidanceSum = 0;
@@ -263,7 +273,7 @@
             const avoidancePercent = ((avoidanceSum - 10) / 40) * 100;
 
             // 嚴格判定：大於 30 才算高 (31分以上)
-            // 模糊地帶：25-35 分之間視為「中度」或「傾向不明顯」
+            // 模糊地帶：27-33 分之間視為「中度」或「傾向不明顯」
             const isHighAnx = anxietySum > 30;
             const isHighAvd = avoidanceSum > 30;
             
@@ -288,17 +298,19 @@
                 subtitle = "您既渴望親密又害怕受傷，內心常處於矛盾與掙扎中。";
             }
 
-            // 加入「模糊地帶」的註解
+            // 加入「模糊地帶」的註解，解決「不準確」的抱怨
             let caveat = "";
-            if (Math.abs(anxietySum - 30) <= 5 && Math.abs(avoidanceSum - 30) <= 5) {
-                caveat = "<br><br><strong>💡 分析師筆記：</strong> 您的各項分數非常接近中心點（30分）。這表示您的依戀風格可能不明顯，或者您在不同情境下會展現不同特質（安全型邊緣）。建議參考座標圖上的落點會比單純的分類更準確。";
-            } else if (Math.abs(anxietySum - 30) <= 3) {
-                caveat = "<br><br><strong>💡 分析師筆記：</strong> 您的「焦慮指數」位於中立區間，這代表您的焦慮特質並不強烈，可能只在特定壓力下才會出現。";
-            } else if (Math.abs(avoidanceSum - 30) <= 3) {
-                caveat = "<br><br><strong>💡 分析師筆記：</strong> 您的「迴避指數」位於中立區間，代表您並非完全排斥親密，只是需要一點個人空間。";
+            const isBorderline = (score) => Math.abs(score - 30) <= 3; // 27-33分
+            
+            if (isBorderline(anxietySum) && isBorderline(avoidanceSum)) {
+                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的分數非常接近中心點。這表示您的依戀風格並不明顯，或者您在不同情境下會展現不同特質（屬於安全型邊緣）。請參考上方的「落點座標圖」，紅點越接近十字中心，代表性格越平衡。`;
+            } else if (isBorderline(anxietySum)) {
+                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的「焦慮指數」位於中立區間，這代表您的焦慮特質並不強烈，可能只在特定高壓下才會出現。`;
+            } else if (isBorderline(avoidanceSum)) {
+                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的「迴避指數」位於中立區間，代表您並非完全排斥親密，只是需要一點個人空間，這是很健康的界線。`;
             }
 
-            // 更新 UI
+            // 更新 UI 顯示
             document.getElementById('result-title').innerText = type;
             document.getElementById('result-title').className = `text-3xl font-extrabold mt-1 ${color}`;
             document.getElementById('result-subtitle').innerText = subtitle;
@@ -313,14 +325,16 @@
             dot.style.left = `${avoidancePercent}%`;
             dot.style.bottom = `${anxietyPercent}%`;
 
-            // 儲存資料 (不顯示結果，也不用 updateCount)
-            try {
-                await addDoc(collection(db, QUIZ_COLLECTION_PATH), {
-                    userId, anxietySum, avoidanceSum, type, timestamp: new Date().toISOString()
-                });
-                // 移除了 updateCount() 的調用和結果顯示
-            } catch(e) { console.error(e); }
+            // 儲存資料 (只儲存，不讀取人數)
+            if (isAuthReady) {
+                try {
+                    await addDoc(collection(db, QUIZ_COLLECTION_PATH), {
+                        userId, anxietySum, avoidanceSum, type, timestamp: new Date().toISOString()
+                    });
+                } catch(e) { console.error("儲存失敗", e); }
+            }
 
+            // 顯示結果 Modal
             document.getElementById('result-modal').classList.remove('hidden');
             btn.innerText = "查看詳細分析報告";
             btn.disabled = false;
@@ -328,7 +342,10 @@
 
         window.resetQuiz = function() {
             document.getElementById('result-modal').classList.add('hidden');
-            document.querySelectorAll('.slider').forEach(s => { s.value = 3; s.nextElementSibling.innerText = "3"; });
+            document.querySelectorAll('.slider').forEach(s => { 
+                s.value = 3; 
+                s.parentElement.nextElementSibling.innerText = "3"; 
+            });
             window.scrollTo(0,0);
         };
 
@@ -343,5 +360,4 @@
     </script>
 </body>
 </html>
-
 
