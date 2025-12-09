@@ -3,108 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>依戀屬性快速測驗</title>
-    <!-- 載入 Tailwind CSS -->
+    <title>依戀屬性專業分析測驗 - 黑森林大叔</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 設定 Tailwind CSS 配置，使用 Inter 字體並加入簡單動畫 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- 引入 Chart.js 用於繪圖 -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f4f7f9;
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f0f2f5; }
+        .slider { -webkit-appearance: none; width: 100%; height: 8px; background: #ddd; border-radius: 5px; outline: none; }
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; background: #4f46e5; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        .slider::-webkit-slider-thumb:hover { transform: scale(1.1); }
+        
+        /* 座標圖樣式 */
+        .quadrant-grid {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border: 2px solid #333;
+            margin: 0 auto;
+            background-image: 
+                linear-gradient(#ccc 1px, transparent 1px),
+                linear-gradient(90deg, #ccc 1px, transparent 1px);
+            background-size: 150px 150px;
+            background-position: -2px -2px;
         }
-        /* 自定義滑塊樣式 */
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 5px;
-            outline: none;
-            transition: opacity .2s;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #4f46e5;
+        .axis-label { position: absolute; font-size: 12px; color: #666; font-weight: bold; }
+        .dot {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: #ef4444;
+            border: 2px solid white;
             border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-            transition: transform 0.1s;
+            transform: translate(-50%, 50%); /* 修正座標中心點 */
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            transition: all 1s ease-out;
         }
-        input[type="range"]::-webkit-slider-thumb:active {
-            transform: scale(1.1);
+        
+        /* 商標樣式 */
+        .brand-logo {
+            font-size: 1.5rem; /* 調整商標字體大小 */
+            font-weight: 700;   /* 粗體 */
+            color: #4f46e5;     /* 使用與主題一致的顏色 */
+            text-align: center;
+            margin-bottom: 1rem; /* 增加與標題的間距 */
+            letter-spacing: 0.1em; /* 增加字距 */
         }
     </style>
 </head>
-<body class="min-h-screen p-4 flex items-start justify-center">
+<body class="min-h-screen p-4 flex flex-col items-center">
 
-    <div id="quiz-container" class="w-full max-w-xl bg-white shadow-2xl rounded-xl p-6 md:p-8 mt-8">
+    <div class="w-full max-w-2xl bg-white shadow-xl rounded-2xl p-6 md:p-10 my-8">
         
-        <!-- 標題區塊 -->
-        <header class="text-center mb-8">
-            <h1 class="text-3xl font-extrabold text-gray-800">黑森林大叔</h1>
-            <h1 class="text-3xl font-extrabold text-gray-800">依戀屬性快速測驗</h1>
-            <p class="text-gray-500 mt-2">請根據您的真實感受，在以下陳述句中選擇您的同意程度。</p>
+        <!-- 商標 -->
+        <div class="brand-logo">
+            黑森林大叔
+        </div>
+
+        <header class="text-center mb-10">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">依戀屬性專業分析</h1>
+            <p class="text-gray-500">請根據您的真實感受，在以下陳述句中選擇您的同意程度。</p>
+            <p class="text-gray-500">［本測試結果僅供參考，如需準確評估請尋求專業諮詢］</p>
+            
+            <div id="loading-indicator" class="mt-4 text-sm text-indigo-500 font-semibold animate-pulse">
+                正在連線至分析資料庫...
+            </div>
+            <!-- 移除了累積人數顯示 -->
         </header>
 
-        <!-- 問卷問題區塊 -->
-        <div id="questions-list">
-            <!-- JavaScript 會在這裡插入問題 -->
+        <div id="questions-list" class="space-y-8">
+            <!-- 問題插入點 -->
         </div>
         
-        <!-- 按鈕區塊 -->
-        <div id="quiz-control" class="mt-10">
-            <button id="submit-button" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow-lg hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/50" onclick="calculateResult()">
-                查看我的依戀屬性
+        <div class="mt-12">
+            <button id="submit-button" class="w-full py-4 bg-indigo-600 text-white text-lg font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-all transform hover:-translate-y-1 disabled:bg-gray-400 disabled:cursor-not-allowed" onclick="calculateAndSaveResult()" disabled>
+                查看詳細分析報告
             </button>
-        </div>
-
-        <!-- 結果區塊 (預設隱藏) -->
-        <div id="result-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
-            <div class="bg-white rounded-xl shadow-2xl p-6 md:p-8 w-full max-w-lg animate-fade-in transform scale-100 transition-transform duration-300">
-                <h2 class="text-3xl font-bold mb-4 text-center text-indigo-600">您的依戀屬性分析</h2>
-                
-                <div class="space-y-4">
-                    <p class="text-lg font-semibold text-gray-700">您傾向於： <span id="attachment-style" class="text-indigo-600 font-extrabold text-2xl"></span></p>
-                    
-                    <div class="border-t border-gray-200 pt-4">
-                        <p class="text-sm text-gray-500">（以下是您在兩個維度上的得分，滿分皆為 50 分）</p>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="font-medium text-red-500">焦慮程度得分 (Anxiety):</span>
-                            <span id="anxiety-score" class="font-bold text-red-500 text-xl">0</span>
-                        </div>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="font-medium text-blue-500">迴避程度得分 (Avoidance):</span>
-                            <span id="avoidance-score" class="font-bold text-blue-500 text-xl">0</span>
-                        </div>
-                    </div>
-                    
-                    <div id="style-description" class="bg-indigo-50 p-4 rounded-lg text-gray-800">
-                        <!-- 依戀屬性描述會在這裡顯示 -->
-                    </div>
-                </div>
-
-                <button class="mt-6 w-full py-2 bg-gray-300 text-gray-800 font-bold rounded-lg hover:bg-gray-400 transition-colors" onclick="resetQuiz()">
-                    重新測試
-                </button>
-            </div>
-        </div>
-        
-        <!-- 錯誤訊息提示 (預設隱藏) -->
-        <div id="error-message" class="hidden mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center font-medium">
-            請回答所有問題後再提交。
+            <p id="error-message" class="hidden mt-3 text-center text-red-500 font-medium"></p>
         </div>
 
     </div>
 
-    <script>
-        // 問卷問題定義
+    <!-- 結果模態框 -->
+    <div id="result-modal" class="hidden fixed inset-0 bg-gray-900/90 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden my-8">
+            
+            <!-- 報告標題 -->
+            <div class="bg-indigo-600 p-6 text-center">
+                <!-- 結果頁面的商標 -->
+                <div class="brand-logo text-white mb-2" style="font-size: 1.2rem;">
+                    黑森林大叔
+                </div>
+                <h2 class="text-2xl font-bold text-white">您的依戀屬性分析報告</h2>
+            </div>
+
+            <div class="p-6 md:p-8 space-y-6">
+                
+                <!-- 結果標題 -->
+                <div class="text-center">
+                    <p class="text-gray-500 text-sm uppercase tracking-wide">分析結果</p>
+                    <h3 id="result-title" class="text-4xl font-extrabold text-gray-800 mt-1"></h3>
+                    <p id="result-subtitle" class="text-indigo-600 font-medium mt-2 text-lg"></p>
+                </div>
+
+                <!-- 視覺化座標圖 -->
+                <div class="flex flex-col items-center justify-center py-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <p class="text-xs text-gray-400 mb-2">座標分佈圖</p>
+                    <div class="quadrant-grid relative">
+                        <!-- 軸標籤 -->
+                        <span class="axis-label top-2 left-1/2 -translate-x-1/2">高焦慮</span>
+                        <span class="axis-label bottom-2 left-1/2 -translate-x-1/2">低焦慮</span>
+                        <span class="axis-label top-1/2 right-2 -translate-y-1/2">高迴避</span>
+                        <span class="axis-label top-1/2 left-2 -translate-y-1/2">低迴避</span>
+                        
+                        <!-- 象限標籤 -->
+                        <span class="absolute top-8 right-8 text-xs text-red-300 font-bold">混亂型</span>
+                        <span class="absolute top-8 left-8 text-xs text-orange-300 font-bold">焦慮型</span>
+                        <span class="absolute bottom-8 right-8 text-xs text-blue-300 font-bold">逃避型</span>
+                        <span class="absolute bottom-8 left-8 text-xs text-green-300 font-bold">安全型</span>
+
+                        <!-- 使用者落點 -->
+                        <div id="user-dot" class="dot" style="bottom: 50%; left: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- 分數詳情 -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-red-50 p-4 rounded-lg text-center">
+                        <p class="text-sm text-red-600 font-bold">焦慮指數 (Anxiety)</p>
+                        <p id="score-anxiety" class="text-3xl font-black text-red-700">0</p>
+                        <p class="text-xs text-red-400 mt-1">滿分 50</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg text-center">
+                        <p class="text-sm text-blue-600 font-bold">迴避指數 (Avoidance)</p>
+                        <p id="score-avoidance" class="text-3xl font-black text-blue-700">0</p>
+                        <p class="text-xs text-blue-400 mt-1">滿分 50</p>
+                    </div>
+                </div>
+
+                <!-- 文字解釋 -->
+                <div id="result-description" class="text-gray-700 leading-relaxed bg-gray-50 p-5 rounded-lg border-l-4 border-indigo-500">
+                    <!-- 描述 -->
+                </div>
+
+                <!-- 移除了結果頁面的累積人數統計 -->
+
+                <button onclick="resetQuiz()" class="w-full py-3 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-colors">
+                    重新測試
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 環境變數
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const QUIZ_COLLECTION_PATH = `artifacts/${appId}/public/data/quiz_results_v2`; // 使用 v2 區隔新舊資料
+
+        // 變數
+        let db, auth, userId, isAuthReady = false;
+
+        // 問題庫 (維持不變)
         const questions = [
-            // 焦慮型依戀 (Anxiety) - 10 題
-            { id: 1, text: "我經常擔心伴侶不像我愛他那樣愛我。", dimension: 'anxiety' },
+            { id: 1, text: "我經常擔心伴侶不像我愛他們那樣愛我。", dimension: 'anxiety' },
             { id: 2, text: "我需要經常得到伴侶的肯定和保證，才能感到安心。", dimension: 'anxiety' },
             { id: 3, text: "當伴侶疏遠我時，我會感到非常不安，並試圖拉近距離。", dimension: 'anxiety' },
             { id: 4, text: "在關係中，我會付出很多，即使委屈自己，以確保關係穩定。", dimension: 'anxiety' },
@@ -114,8 +180,6 @@
             { id: 8, text: "我渴望與伴侶建立非常親密且依賴的關係，最好是形影不離。", dimension: 'anxiety' },
             { id: 9, text: "我傾向於在衝突後主動修復關係，即使不完全是我的錯。", dimension: 'anxiety' },
             { id: 10, text: "我的情緒經常受到伴侶行為的影響而起伏不定。", dimension: 'anxiety' },
-            
-            // 逃避型依戀 (Avoidance) - 10 題
             { id: 11, text: "我認為在親密關係中保持獨立和個人空間非常重要。", dimension: 'avoidance' },
             { id: 12, text: "當關係變得太親密時，我會想拉開距離或暫時抽離。", dimension: 'avoidance' },
             { id: 13, text: "我不喜歡依賴別人，也不喜歡別人太依賴我。", dimension: 'avoidance' },
@@ -128,93 +192,161 @@
             { id: 20, text: "我努力讓自己相信，我能夠處理生活中的所有問題，不需要他人幫助。", dimension: 'avoidance' }
         ];
 
-        // 依戀屬性描述
-        const descriptions = {
-            secure: {
-                style: "安全型依戀 (Secure)",
-                color: "text-green-600",
-                description: "恭喜您！安全型依戀者對親密關係抱持積極態度。您在關係中既能獨立自主，也能在需要時尋求支持。您相信自己值得被愛，也相信伴侶是可靠的。這有助於建立穩定、和諧的長期關係。"
-            },
-            anxious: {
-                style: "焦慮型依戀 (Anxious-Preoccupied)",
-                color: "text-orange-600",
-                description: "焦慮型依戀者渴望親密但又充滿不安全感。您可能容易患得患失，需要伴侶不斷地確認和保證。請嘗試學習**自我安撫**，並相信您的價值不依賴於伴侶的行為。"
-            },
-            avoidant: {
-                style: "逃避型依戀 (Avoidant-Dismissing)",
-                color: "text-blue-600",
-                description: "逃避型依戀者高度重視獨立和個人空間。當關係變得親密時，您可能會傾向於拉開距離或迴避情感交流。請嘗試練習**情感表達**，允許自己在關係中展現脆弱，以建立更深層的連結。"
-            },
-            disorganized: {
-                style: "混亂型依戀 (Disorganized/Fearful-Avoidant)",
-                color: "text-red-600",
-                description: "混亂型依戀者同時擁有高焦慮和高迴避的特質。您既渴望親密又害怕親密，這導致關係中的行為模式不穩定且充滿矛盾。這通常與童年複雜的依戀經驗有關。建議尋求**專業支持**，幫助建立更一致的內在安全感。"
-            }
-        };
-
         // 初始化問卷
         const questionsList = document.getElementById('questions-list');
-        const submitButton = document.getElementById('submit-button');
-
-        function initQuiz() {
-            questionsList.innerHTML = '';
-            questions.forEach(q => {
-                const questionElement = document.createElement('div');
-                questionElement.className = 'question-card bg-gray-50 p-4 mb-4 rounded-lg border border-gray-200 transition-shadow duration-300 hover:shadow-md';
-                questionElement.innerHTML = `
-                    <p class="text-base font-semibold text-gray-800 mb-3">${q.id}. ${q.text}</p>
-                    <div class="flex justify-between text-sm text-gray-500 mb-2">
-                        <span>非常不同意 (1)</span>
-                        <span>非常同意 (5)</span>
+        questions.forEach(q => {
+            const div = document.createElement('div');
+            div.className = "bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow";
+            div.innerHTML = `
+                <div class="mb-4">
+                    <span class="inline-block px-2 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded mb-2">Q${q.id}</span>
+                    <p class="text-lg font-medium text-gray-800">${q.text}</p>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <div class="flex justify-between text-xs text-gray-400 font-bold">
+                        <span>非常不同意</span>
+                        <span>非常同意</span>
                     </div>
-                    <input type="range" min="1" max="5" value="3" data-id="${q.id}" data-dimension="${q.dimension}" class="slider" onchange="updateSliderValue(this)">
-                    <p class="text-right text-base font-bold text-indigo-600 mt-1" id="value-${q.id}">3</p>
-                `;
-                questionsList.appendChild(questionElement);
-            });
+                    <input type="range" min="1" max="5" value="3" data-dimension="${q.dimension}" class="slider" oninput="this.nextElementSibling.innerText = this.value">
+                    <div class="text-center text-indigo-600 font-bold text-xl mt-1">3</div>
+                </div>
+            `;
+            questionsList.appendChild(div);
+        });
+
+        // Firebase 邏輯
+        async function initFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
+                else await signInAnonymously(auth);
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        isAuthReady = true;
+                        document.getElementById('loading-indicator').classList.add('hidden');
+                        document.getElementById('submit-button').disabled = false;
+                        // 移除了 updateCount() 的調用
+                    }
+                });
+            } catch (e) {
+                console.error("Firebase Error", e);
+                document.getElementById('loading-indicator').innerText = "連線失敗，請重新整理頁面。";
+            }
         }
 
-        // 更新滑塊顯示的數值
-        function updateSliderValue(slider) {
-            document.getElementById(`value-${slider.dataset.id}`).textContent = slider.value;
-        }
+        // 移除了 updateCount() 函數
 
-        // 計算並顯示結果
-        function calculateResult() {
+        // 核心分析邏輯
+        window.calculateAndSaveResult = async function() {
+            if (!isAuthReady) return;
+            const btn = document.getElementById('submit-button');
+            btn.disabled = true;
+            btn.innerText = "分析中...";
+
             const sliders = document.querySelectorAll('.slider');
-            let totalAnxietyScore = 0;
-            let totalAvoidanceScore = 0;
-            let allAnswered = true;
-
-            // 確保所有滑塊都被操作過（儘管預設值為 3，但為了模擬正式提交前的檢查）
-            // 在本簡化模型中，所有滑塊都有預設值，所以總是已回答。
-            // 實際使用中可以檢查滑塊是否被操作。
-
-            sliders.forEach(slider => {
-                const score = parseInt(slider.value, 10);
-                if (slider.dataset.dimension === 'anxiety') {
-                    totalAnxietyScore += score;
-                } else if (slider.dataset.dimension === 'avoidance') {
-                    totalAvoidanceScore += score;
-                }
+            let anxietySum = 0, avoidanceSum = 0;
+            sliders.forEach(s => {
+                const val = parseInt(s.value);
+                if (s.dataset.dimension === 'anxiety') anxietySum += val;
+                else avoidanceSum += val;
             });
 
-            // 檢查是否所有問題都回答了 (在本例中因為有預設值，所以略過嚴格檢查)
-            if (!allAnswered) {
-                document.getElementById('error-message').classList.remove('hidden');
-                return;
+            // --- 修正後的邏輯 ---
+            // 滿分 50，最低 10。
+            // 座標化：將分數轉換為 0% ~ 100% 的位置
+            // 10分 -> 0%, 30分 -> 50%, 50分 -> 100%
+            const anxietyPercent = ((anxietySum - 10) / 40) * 100;
+            const avoidancePercent = ((avoidanceSum - 10) / 40) * 100;
+
+            // 嚴格判定：大於 30 才算高 (31分以上)
+            // 模糊地帶：25-35 分之間視為「中度」或「傾向不明顯」
+            const isHighAnx = anxietySum > 30;
+            const isHighAvd = avoidanceSum > 30;
+            
+            let type = "", subtitle = "";
+            let color = "";
+
+            if (!isHighAnx && !isHighAvd) {
+                type = "安全型 (Secure)";
+                color = "text-green-600";
+                subtitle = "您在關係中感到舒適與安全，能平衡獨立與親密。";
+            } else if (isHighAnx && !isHighAvd) {
+                type = "焦慮型 (Anxious)";
+                color = "text-orange-500";
+                subtitle = "您渴望親密，但常擔心被對方拋棄或不夠愛自己。";
+            } else if (!isHighAnx && isHighAvd) {
+                type = "逃避型 (Avoidant)";
+                color = "text-blue-500";
+                subtitle = "您傾向保持距離與獨立，對於過度親密感到不自在。";
             } else {
-                document.getElementById('error-message').classList.add('hidden');
+                type = "混亂型 (Disorganized)";
+                color = "text-red-500";
+                subtitle = "您既渴望親密又害怕受傷，內心常處於矛盾與掙扎中。";
             }
 
-            // --- 依戀屬性分類邏輯 ---
-            // 總分範圍是 10 到 50 (10題 * 1分 到 10題 * 5分)
-            // 我們以中位數 30 作為高低分的臨界值 (10題 * 3分 = 30)
+            // 加入「模糊地帶」的註解
+            let caveat = "";
+            if (Math.abs(anxietySum - 30) <= 5 && Math.abs(avoidanceSum - 30) <= 5) {
+                caveat = "<br><br><strong>💡 分析師筆記：</strong> 您的各項分數非常接近中心點（30分）。這表示您的依戀風格可能不明顯，或者您在不同情境下會展現不同特質（安全型邊緣）。建議參考座標圖上的落點會比單純的分類更準確。";
+            } else if (Math.abs(anxietySum - 30) <= 3) {
+                caveat = "<br><br><strong>💡 分析師筆記：</strong> 您的「焦慮指數」位於中立區間，這代表您的焦慮特質並不強烈，可能只在特定壓力下才會出現。";
+            } else if (Math.abs(avoidanceSum - 30) <= 3) {
+                caveat = "<br><br><strong>💡 分析師筆記：</strong> 您的「迴避指數」位於中立區間，代表您並非完全排斥親密，只是需要一點個人空間。";
+            }
 
-            const THRESHOLD = 30; // 臨界值
+            // 更新 UI
+            document.getElementById('result-title').innerText = type;
+            document.getElementById('result-title').className = `text-3xl font-extrabold mt-1 ${color}`;
+            document.getElementById('result-subtitle').innerText = subtitle;
+            document.getElementById('score-anxiety').innerText = anxietySum;
+            document.getElementById('score-avoidance').innerText = avoidanceSum;
+            document.getElementById('result-description').innerHTML = getDetailedDesc(type) + caveat;
+            
+            // 更新座標點位置
+            // X軸: 迴避 (左低右高) -> left: avoidancePercent%
+            // Y軸: 焦慮 (下低上高) -> bottom: anxietyPercent%
+            const dot = document.getElementById('user-dot');
+            dot.style.left = `${avoidancePercent}%`;
+            dot.style.bottom = `${anxietyPercent}%`;
 
-            const isHighAnxiety = totalAnxietyScore >= THRESHOLD;
-            const isHighAvoidance = totalAvoidanceScore >= THRESHOLD;
+            // 儲存資料 (不顯示結果，也不用 updateCount)
+            try {
+                await addDoc(collection(db, QUIZ_COLLECTION_PATH), {
+                    userId, anxietySum, avoidanceSum, type, timestamp: new Date().toISOString()
+                });
+                // 移除了 updateCount() 的調用和結果顯示
+            } catch(e) { console.error(e); }
+
+            document.getElementById('result-modal').classList.remove('hidden');
+            btn.innerText = "查看詳細分析報告";
+            btn.disabled = false;
+        };
+
+        window.resetQuiz = function() {
+            document.getElementById('result-modal').classList.add('hidden');
+            document.querySelectorAll('.slider').forEach(s => { s.value = 3; s.nextElementSibling.innerText = "3"; });
+            window.scrollTo(0,0);
+        };
+
+        function getDetailedDesc(type) {
+            if (type.includes("安全")) return "安全型依戀者通常擁有正向的自我價值感，也信任他人。這不代表您在關係中完全沒有問題，而是您有能力透過溝通與調節情緒來解決衝突，而不會採取過激的抗議行為或冷暴力。";
+            if (type.includes("焦慮")) return "焦慮型依戀者對於「被拋棄」非常敏感。您非常善於察覺伴侶的情緒變化，但有時會過度解讀。您的挑戰在於學習自我安撫，相信「伴侶不在身邊」不等於「他不愛我」。";
+            if (type.includes("逃避")) return "逃避型依戀者將「獨立」視為最高價值。您可能會無意識地壓抑對親密的需求，當伴侶試圖靠近時，您會感到窒息而想逃離。您的挑戰是理解「依賴」並不是軟弱，而是關係的一部分。";
+            return "混亂型依戀者（又稱恐懼-逃避型）內心常有兩股力量在拉扯。您可能在童年經歷過無助的時刻，導致您想靠近人卻又怕受傷。這是一種自我保護機制，建議尋求專業諮商協助，建立內在的安全基地。";
+        }
+
+        window.onload = initFirebase;
+    </script>
+</body>
+</html>
+
+
+= THRESHOLD;
 
             let resultKey;
 
