@@ -61,8 +61,7 @@
 
         <header class="text-center mb-10">
             <h1 class="text-3xl font-bold text-gray-800 mb-2">依戀屬性專業分析</h1>
-            <p class="text-gray-500">請根據您的真實感受，在以下陳述句中選擇您的同意程度。</p>
-            <p class="text-gray-500">［本測試結果僅供參考，如需準確評估請尋求專業諮詢］</p>
+            <p class="text-gray-500">此版本修正了臨界值判定，並提供視覺化落點分析。</p>
             
             <div id="loading-indicator" class="mt-4 text-sm text-indigo-500 font-semibold animate-pulse">
                 正在連線至分析資料庫...
@@ -342,48 +341,6 @@
 
         window.onload = initFirebase;
     </script>
-</body>
-</html>
-
-
-= THRESHOLD;
-
-            let resultKey;
-
-            if (!isHighAnxiety && !isHighAvoidance) {
-                resultKey = 'secure'; // 低焦慮, 低迴避
-            } else if (isHighAnxiety && !isHighAvoidance) {
-                resultKey = 'anxious'; // 高焦慮, 低迴避
-            } else if (!isHighAnxiety && isHighAvoidance) {
-                resultKey = 'avoidant'; // 低焦慮, 高迴避
-            } else {
-                resultKey = 'disorganized'; // 高焦慮, 高迴避
-            }
-            
-            // 顯示結果
-            const result = descriptions[resultKey];
-            document.getElementById('attachment-style').textContent = result.style;
-            document.getElementById('attachment-style').className = `font-extrabold text-2xl ${result.color}`;
-            document.getElementById('anxiety-score').textContent = totalAnxietyScore;
-            document.getElementById('avoidance-score').textContent = totalAvoidanceScore;
-            document.getElementById('style-description').innerHTML = `
-                <p class="font-bold text-lg mb-2 ${result.color}">${result.style} 特徵：</p>
-                <p>${result.description}</p>
-            `;
-
-            document.getElementById('result-modal').classList.remove('hidden');
-        }
-
-        // 重新開始測驗
-        function resetQuiz() {
-            document.getElementById('result-modal').classList.add('hidden');
-            initQuiz();
-        }
-
-        // 頁面載入時初始化
-        window.onload = initQuiz;
-    </script>
-
 </body>
 </html>
 
