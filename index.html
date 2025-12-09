@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        /* 使用 Noto Sans TC 確保中文字體顯示優化 */
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #f0f2f5; }
         
         /* 滑塊樣式優化 */
@@ -22,11 +23,12 @@
             height: 300px;
             border: 2px solid #333;
             margin: 0 auto;
+            /* 模擬座標軸線 */
             background-image: 
-                linear-gradient(#e5e7eb 1px, transparent 1px),
-                linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
-            background-size: 150px 150px;
-            background-position: -2px -2px;
+                linear-gradient(to bottom, #333 1px, transparent 1px),
+                linear-gradient(to right, #333 1px, transparent 1px);
+            background-size: 100% 150px, 150px 100%;
+            background-position: 0 149px, 149px 0;
         }
         /* 軸線標籤 */
         .axis-label { position: absolute; font-size: 12px; color: #666; font-weight: bold; padding: 2px 4px; background: rgba(255,255,255,0.8); border-radius: 4px; }
@@ -39,7 +41,9 @@
             background-color: #ef4444; /* 紅色 */
             border: 2px solid white;
             border-radius: 50%;
-            transform: translate(-50%, 50%); /* 修正中心點對齊 */
+            /* 座標圖原點位於左下角 (0, 0)，但 CSS bottom/left 計算是從邊緣開始 */
+            /* translate(-50%, 50%) 將點的中心對齊到 left 和 bottom 的百分比位置 */
+            transform: translate(-50%, 50%); 
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
             transition: all 1s ease-out;
             z-index: 10;
@@ -50,20 +54,25 @@
 
     <div class="w-full max-w-2xl bg-white shadow-xl rounded-2xl p-6 md:p-10 my-8">
         
-        <!-- 商標顯示區 -->
+        <!-- 商標顯示區 - 已替換為 SVG 佔位符確保顯示 -->
         <div class="text-center mb-6">
-            <!-- 請確保圖片檔案 1000075381.png 與此 html 檔在同一目錄下 -->
-            <!-- 圖片載入失敗時，使用文字作為備用標誌 -->
-            <img src="1000075381.png" alt="黑森林大叔" class="mx-auto w-32 h-auto object-contain mb-2" onerror="this.style.display='none'; document.getElementById('brand-text').style.display='block'">
-            <h2 id="brand-text" class="text-xl font-bold text-gray-800 tracking-widest" style="display:none;">黑森林大叔</h2>
+            <!-- 使用 SVG 虛擬 Logo 佔位符 -->
+            <div class="mx-auto w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mb-2 shadow-lg">
+                <!-- 心理/分析相關的通用圖標 -->
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.621h.001M20 7.835h.001M19.14 15.36L15 19.5M17 14l2-2m-2-2h-3v3M6 14V7a2 2 0 012-2h4l4 4v3m-6 4v3m4-3v3m2-12l4-4h4l-4 4"></path></svg>
+            </div>
+            <h2 class="text-xl font-bold text-gray-800 tracking-widest">黑森林大叔</h2>
         </div>
 
         <header class="text-center mb-10 border-b pb-6">
             <h1 class="text-2xl font-bold text-gray-800 mb-2">依戀屬性專業分析</h1>
-            <p class="text-gray-500 text-sm">請依照真實感受回答，系統將為您進行落點分析。</p>
+            <!-- 更新後的說明文字 -->
+            <p class="text-gray-500 text-sm">請依照真實感受回答，</p>
+            <p class="text-gray-500 text-sm">系統將為您進行落點分析。</p>
+            <p class="text-xs text-red-500 mt-3 font-bold">［本測試僅供參考，如需準確分析請洽專業人員諮詢］</p>
             
-            <div id="loading-indicator" class="mt-4 text-xs text-indigo-500 font-semibold animate-pulse">
-                載入中... (準備完成後按鈕將啟用)
+            <div id="loading-indicator" class="mt-4 text-xs text-indigo-500 font-semibold animate-pulse hidden">
+                <!-- 由於沒有外部資源，載入指示器預設隱藏，僅作為 UX 參考 -->
             </div>
         </header>
 
@@ -74,10 +83,10 @@
         
         <!-- 提交按鈕 -->
         <div class="mt-12">
-            <button id="submit-button" class="w-full py-4 bg-indigo-600 text-white text-lg font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-all transform hover:-translate-y-1 disabled:bg-gray-400 disabled:cursor-not-allowed" onclick="calculateResult()" disabled>
+            <button id="submit-button" class="w-full py-4 bg-indigo-600 text-white text-lg font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-all transform hover:-translate-y-1 disabled:bg-gray-400 disabled:cursor-not-allowed" onclick="calculateResult()">
                 查看詳細分析報告
             </button>
-            <p id="error-message" class="hidden mt-3 text-center text-red-500 font-medium"></p>
+            <p id="error-message" class="hidden mt-3 text-center text-red-500 font-medium">請回答所有問題後再提交。</p>
         </div>
 
     </div>
@@ -86,7 +95,7 @@
     <div id="result-modal" class="hidden fixed inset-0 bg-gray-900/90 flex items-center justify-center p-4 z-50 overflow-y-auto">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden my-8 relative">
             
-            <!-- 關閉按鈕 -->
+            <!-- 關閉按鈕 / 重新測試 -->
             <button onclick="resetQuiz()" class="absolute top-4 right-4 bg-indigo-600 p-2 rounded-full text-white hover:bg-indigo-700 z-10">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
@@ -108,13 +117,13 @@
 
                 <!-- 視覺化座標圖 -->
                 <div class="flex flex-col items-center justify-center py-6 bg-gray-50 rounded-xl border border-gray-200">
-                    <p class="text-xs text-gray-400 mb-3 font-bold">您的心理落點座標圖</p>
+                    <p class="text-xs text-gray-400 mb-3 font-bold">您的心理落點座標圖 (迴避 x 焦慮)</p>
                     <div class="quadrant-grid relative bg-white shadow-inner">
                         <!-- 軸標籤 -->
-                        <span class="axis-label top-2 left-1/2 -translate-x-1/2 text-orange-600">高焦慮</span>
-                        <span class="axis-label bottom-2 left-1/2 -translate-x-1/2 text-green-600">低焦慮</span>
-                        <span class="axis-label top-1/2 right-2 -translate-y-1/2 text-blue-600">高迴避</span>
-                        <span class="axis-label top-1/2 left-2 -translate-y-1/2 text-green-600">低迴避</span>
+                        <span class="axis-label top-1 left-1/2 -translate-x-1/2 text-red-600">高焦慮</span>
+                        <span class="axis-label bottom-1 left-1/2 -translate-x-1/2 text-green-600">低焦慮</span>
+                        <span class="axis-label top-1/2 right-1 -translate-y-1/2 text-blue-600">高迴避</span>
+                        <span class="axis-label top-1/2 left-1 -translate-y-1/2 text-green-600">低迴避</span>
                         
                         <!-- 象限名稱 -->
                         <span class="absolute top-6 right-6 text-xs text-gray-300 font-bold pointer-events-none">混亂型</span>
@@ -128,21 +137,21 @@
                     <p class="text-xs text-gray-400 mt-2">*紅點越接近中心，代表性格越趨於平衡安全</p>
                 </div>
 
-                <!-- 分數數值 -->
+                <!-- 分數數值 (使用舊的 ID: score-anxiety/avoidance) -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-red-50 p-3 rounded-lg text-center border border-red-100">
-                        <p class="text-xs text-red-500 font-bold mb-1">焦慮指數</p>
+                        <p class="text-xs text-red-500 font-bold mb-1">焦慮指數 (Anxiety)</p>
                         <p id="score-anxiety" class="text-2xl font-black text-red-600">0</p>
                         <p class="text-[10px] text-gray-400">分數越高代表越容易焦慮</p>
                     </div>
                     <div class="bg-blue-50 p-3 rounded-lg text-center border border-blue-100">
-                        <p class="text-xs text-blue-500 font-bold mb-1">迴避指數</p>
+                        <p class="text-xs text-blue-500 font-bold mb-1">迴避指數 (Avoidance)</p>
                         <p id="score-avoidance" class="text-2xl font-black text-blue-600">0</p>
                         <p class="text-[10px] text-gray-400">分數越高代表越習慣逃避</p>
                     </div>
                 </div>
 
-                <!-- 詳細文字解釋 -->
+                <!-- 詳細文字解釋 (使用舊的 ID: result-description) -->
                 <div id="result-description" class="text-gray-700 text-sm leading-relaxed bg-gray-50 p-5 rounded-lg border-l-4 border-indigo-500 shadow-sm">
                     <!-- JS 動態插入描述 -->
                 </div>
@@ -155,9 +164,10 @@
     </div>
 
     <script type="module">
-        // 題目資料庫
+        // 問卷問題定義 (共 20 題，每維度 10 題)
         const questions = [
-            { id: 1, text: "我經常擔心伴侶不像我愛他那樣愛我。", dimension: 'anxiety' },
+            // 焦慮型依戀 (Anxiety) - 10 題
+            { id: 1, text: "我經常擔心伴侶不像我愛他們那樣愛我。", dimension: 'anxiety' },
             { id: 2, text: "我需要經常得到伴侶的肯定和保證，才能感到安心。", dimension: 'anxiety' },
             { id: 3, text: "當伴侶疏遠我時，我會感到非常不安，並試圖拉近距離。", dimension: 'anxiety' },
             { id: 4, text: "在關係中，我會付出很多，即使委屈自己，以確保關係穩定。", dimension: 'anxiety' },
@@ -167,6 +177,8 @@
             { id: 8, text: "我渴望與伴侶建立非常親密且依賴的關係，最好是形影不離。", dimension: 'anxiety' },
             { id: 9, text: "我傾向於在衝突後主動修復關係，即使不完全是我的錯。", dimension: 'anxiety' },
             { id: 10, text: "我的情緒經常受到伴侶行為的影響而起伏不定。", dimension: 'anxiety' },
+            
+            // 逃避型依戀 (Avoidance) - 10 題
             { id: 11, text: "我認為在親密關係中保持獨立和個人空間非常重要。", dimension: 'avoidance' },
             { id: 12, text: "當關係變得太親密時，我會想拉開距離或暫時抽離。", dimension: 'avoidance' },
             { id: 13, text: "我不喜歡依賴別人，也不喜歡別人太依賴我。", dimension: 'avoidance' },
@@ -179,37 +191,71 @@
             { id: 20, text: "我努力讓自己相信，我能夠處理生活中的所有問題，不需要他人幫助。", dimension: 'avoidance' }
         ];
 
-        // 初始化題目介面
+        // 依戀屬性描述物件 (取自您提供的程式碼)
+        const descriptions = {
+            secure: {
+                style: "安全型依戀 (Secure)",
+                subtitle: "您擁有正向的自我價值感，並在關係中感到安全與舒適。",
+                color: "text-green-600",
+                description: "恭喜您！安全型依戀者對親密關係抱持積極態度。您在關係中既能獨立自主，也能在需要時尋求支持。您相信自己值得被愛，也相信伴侶是可靠的。這有助於建立穩定、和諧的長期關係。"
+            },
+            anxious: {
+                style: "焦慮型依戀 (Anxious-Preoccupied)",
+                subtitle: "您非常渴望親密，但常因擔心被拋棄而過度投入或擔憂。",
+                color: "text-orange-600",
+                description: "焦慮型依戀者渴望親密但又充滿不安全感。您可能容易患得患失，需要伴侶不斷地確認和保證。請嘗試學習**自我安撫**，並相信您的價值不依賴於伴侶的行為。"
+            },
+            avoidant: {
+                style: "逃避型依戀 (Avoidant-Dismissing)",
+                subtitle: "您傾向保持獨立和個人空間，對於過度親密感到不自在。",
+                color: "text-blue-600",
+                description: "逃避型依戀者高度重視獨立和個人空間。當關係變得親密時，您可能會傾向於拉開距離或迴避情感交流。請嘗試練習**情感表達**，允許自己在關係中展現脆弱，以建立更深層的連結。"
+            },
+            disorganized: {
+                style: "混亂型依戀 (Disorganized/Fearful-Avoidant)",
+                subtitle: "您既渴望親密又害怕受傷，內心常有矛盾的拉扯與掙扎。",
+                color: "text-red-600",
+                description: "混亂型依戀者（又稱恐懼-逃避型）內心常有兩股力量在拉扯。您既渴望親密又害怕親密，這導致關係中的行為模式不穩定且充滿矛盾。這通常與童年複雜的依戀經驗有關。建議尋求**專業支持**，幫助建立更一致的內在安全感。"
+            }
+        };
+
+        const THRESHOLD = 30; // 總分 10-50，臨界值 30 (10題*3分)
         const questionsList = document.getElementById('questions-list');
-        questions.forEach(q => {
-            const div = document.createElement('div');
-            // 加上 question-wrapper class，方便 DOM 存取
-            div.className = "bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow question-wrapper"; 
-            div.innerHTML = `
-                <div class="mb-4">
-                    <span class="inline-block px-2 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded mb-2">Q${q.id}</span>
-                    <p class="text-base font-medium text-gray-800">${q.text}</p>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between text-xs text-gray-400 font-bold px-1">
-                        <span>非常不同意 (1)</span>
-                        <span>非常同意 (5)</span>
+        const submitButton = document.getElementById('submit-button');
+
+        // 初始化問卷介面
+        function initQuiz() {
+            questionsList.innerHTML = '';
+            questions.forEach(q => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow question-wrapper"; 
+                div.innerHTML = `
+                    <div class="mb-4">
+                        <span class="inline-block px-2 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded mb-2">Q${q.id}</span>
+                        <p class="text-base font-medium text-gray-800">${q.text}</p>
                     </div>
-                    <div class="relative flex items-center">
-                        <input type="range" min="1" max="5" value="3" data-dimension="${q.dimension}" class="slider z-10" 
-                               oninput="this.closest('.question-wrapper').querySelector('.output-val').innerText = this.value">
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between text-xs text-gray-400 font-bold px-1">
+                            <span>非常不同意 (1)</span>
+                            <span>非常同意 (5)</span>
+                        </div>
+                        <div class="relative flex items-center">
+                            <input type="range" min="1" max="5" value="3" data-id="${q.id}" data-dimension="${q.dimension}" class="slider z-10" 
+                                   oninput="updateSliderValue(this)">
+                        </div>
+                        <div class="text-center text-indigo-600 font-bold text-lg mt-1 output-val" id="value-${q.id}">3</div>
                     </div>
-                    <div class="text-center text-indigo-600 font-bold text-lg mt-1 output-val">3</div>
-                </div>
-            `;
-            questionsList.appendChild(div);
-        });
-        
-        // 應用程式初始化
-        function initApp() {
-            // 由於沒有外部連線，可以直接隱藏載入指示器並啟用按鈕
-            document.getElementById('loading-indicator').classList.add('hidden');
-            document.getElementById('submit-button').disabled = false;
+                `;
+                questionsList.appendChild(div);
+            });
+            // 啟用按鈕 (因為沒有外部依賴，可立即啟用)
+            submitButton.disabled = false;
+            document.getElementById('error-message').classList.add('hidden');
+        }
+
+        // 更新滑塊顯示的數值
+        function updateSliderValue(slider) {
+            document.getElementById(`value-${slider.dataset.id}`).textContent = slider.value;
         }
 
         // 核心分析邏輯
@@ -222,65 +268,54 @@
 
             const sliders = document.querySelectorAll('.slider');
             let anxietySum = 0, avoidanceSum = 0;
+
+            // 在本簡化模型中，所有滑塊都有預設值 3，所以一定有回答。
             sliders.forEach(s => {
-                const val = parseInt(s.value);
+                const val = parseInt(s.value, 10);
                 if (s.dataset.dimension === 'anxiety') anxietySum += val;
                 else avoidanceSum += val;
             });
 
-            // --- 依戀屬性分類邏輯 ---
+            // 決定依戀類型
+            const isHighAnx = anxietySum >= THRESHOLD;
+            const isHighAvd = avoidanceSum >= THRESHOLD;
+            
+            let resultKey;
+
+            if (!isHighAnx && !isHighAvd) {
+                resultKey = 'secure'; // 低焦慮, 低迴避
+            } else if (isHighAnx && !isHighAvd) {
+                resultKey = 'anxious'; // 高焦慮, 低迴避
+            } else if (!isHighAnx && isHighAvd) {
+                resultKey = 'avoidant'; // 低焦慮, 高迴避
+            } else {
+                resultKey = 'disorganized'; // 高焦慮, 高迴避
+            }
+
+            const result = descriptions[resultKey];
+
+            // --- 座標圖視覺化計算 ---
             // 總分範圍：10 (min) ~ 50 (max)
-            // 轉換為 0% ~ 100% 座標，用於視覺化
+            // 轉換為 0% ~ 100% 座標 (0% = 10分; 100% = 50分)
             const anxietyPercent = ((anxietySum - 10) / 40) * 100;
             const avoidancePercent = ((avoidanceSum - 10) / 40) * 100;
 
-            // 分界點使用 30 (中間值) 作為高/低的標準
-            const isHighAnx = anxietySum > 30; // 31-50
-            const isHighAvd = avoidanceSum > 30; // 31-50
-            
-            let type = "", subtitle = "", color = "";
-
-            if (!isHighAnx && !isHighAvd) {
-                type = "安全型 (Secure)";
-                color = "text-green-600";
-                subtitle = "您擁有正向的自我價值感，並在關係中感到安全與舒適。";
-            } else if (isHighAnx && !isHighAvd) {
-                type = "焦慮型 (Anxious)";
-                color = "text-orange-500";
-                subtitle = "您非常渴望親密，但常因擔心被拋棄而過度投入或擔憂。";
-            } else if (!isHighAnx && isHighAvd) {
-                type = "逃避型 (Avoidant)";
-                color = "text-blue-500";
-                subtitle = "您傾向保持獨立和個人空間，對於過度親密感到不自在。";
-            } else {
-                type = "混亂型 (Disorganized)";
-                color = "text-red-500";
-                subtitle = "您既渴望親密又害怕受傷，內心常有矛盾的拉扯與掙扎。";
-            }
-
-            // 加入「模糊地帶」的註解 (27-33分視為中立區間)
-            let caveat = "";
-            const isBorderline = (score) => Math.abs(score - 30) <= 3; 
-            
-            if (isBorderline(anxietySum) && isBorderline(avoidanceSum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的分數非常接近中心點。這表示您的依戀風格並不明顯，或者您在不同情境下會展現不同特質（屬於安全型邊緣）。請參考上方的「落點座標圖」，紅點越接近十字中心，代表性格越平衡。`;
-            } else if (isBorderline(anxietySum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的「焦慮指數」位於中立區間，這代表您的焦慮特質並不強烈，可能只在特定高壓下才會出現。`;
-            } else if (isBorderline(avoidanceSum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的「迴避指數」位於中立區間，代表您並非完全排斥親密，只是需要一點個人空間，這是很健康的界線。`;
-            }
-
-            // 更新 UI 顯示
-            document.getElementById('result-title').innerText = type;
-            document.getElementById('result-title').className = `text-3xl font-extrabold mt-1 ${color}`;
-            document.getElementById('result-subtitle').innerText = subtitle;
+            // 更新 UI 顯示 (使用 index.html 中既有的 ID)
+            document.getElementById('result-title').innerText = result.style;
+            document.getElementById('result-title').className = `text-3xl font-extrabold mt-1 ${result.color}`;
+            document.getElementById('result-subtitle').innerText = result.subtitle;
             document.getElementById('score-anxiety').innerText = anxietySum;
             document.getElementById('score-avoidance').innerText = avoidanceSum;
-            document.getElementById('result-description').innerHTML = getDetailedDesc(type) + caveat;
+            
+            document.getElementById('result-description').innerHTML = `
+                <p class="font-bold text-lg mb-2 ${result.color}">${result.style} 特徵：</p>
+                <p>${result.description}</p>
+            `;
             
             // 更新座標點位置
             const dot = document.getElementById('user-dot');
             dot.style.left = `${avoidancePercent}%`;
+            // 注意：焦慮分數越高，點應該越「高」，即 bottom 數值越大
             dot.style.bottom = `${anxietyPercent}%`;
 
             // 顯示結果 Modal
@@ -289,672 +324,14 @@
             btn.disabled = false;
         };
 
+        // 重新開始測驗
         window.resetQuiz = function() {
             document.getElementById('result-modal').classList.add('hidden');
-            document.querySelectorAll('.slider').forEach(s => { 
-                s.value = 3; 
-                // 再次使用穩健的 DOM 存取方式來重置顯示值
-                s.closest('.question-wrapper').querySelector('.output-val').innerText = "3";
-            });
+            initQuiz();
             window.scrollTo(0,0);
         };
 
-        function getDetailedDesc(type) {
-            if (type.includes("安全")) return "安全型依戀者通常擁有正向的自我價值感，也信任他人。這不代表您在關係中完全沒有問題，而是您有能力透過溝通與調節情緒來解決衝突，而不會採取過激的抗議行為或冷暴力。";
-            if (type.includes("焦慮")) return "焦慮型依戀者對於「被拋棄」非常敏感。您非常善於察覺伴侶的情緒變化，但有時會過度解讀。您的挑戰在於學習自我安撫，相信「伴侶不在身邊」不等於「他不愛我」。";
-            if (type.includes("逃避")) return "逃避型依戀者將「獨立」視為最高價值。您可能會無意識地壓抑對親密的需求，當伴侶試圖靠近時，您會感到窒息而想逃離。您的挑戰是理解「依賴」並不是軟弱，而是關係的一部分。";
-            return "混亂型依戀者（又稱恐懼-逃避型）內心常有兩股力量在拉扯。您可能在童年經歷過無助的時刻，導致您想靠近人卻又怕受傷。這是一種自我保護機制，建議尋求專業諮商協助，建立內在的安全基地。";
-        }
-
-        window.onload = initApp;
-    </script>
-</body>
-</html>
-
-   div.className = "bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow question-wrapper"; 
-            div.innerHTML = `
-                <div class="mb-4">
-                    <span class="inline-block px-2 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded mb-2">Q${q.id}</span>
-                    <p class="text-base font-medium text-gray-800">${q.text}</p>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between text-xs text-gray-400 font-bold px-1">
-                        <span>非常不同意 (1)</span>
-                        <span>非常同意 (5)</span>
-                    </div>
-                    <div class="relative flex items-center">
-                        <input type="range" min="1" max="5" value="3" data-dimension="${q.dimension}" class="slider z-10" 
-                               oninput="this.closest('.question-wrapper').querySelector('.output-val').innerText = this.value">
-                    </div>
-                    <div class="text-center text-indigo-600 font-bold text-lg mt-1 output-val">3</div>
-                </div>
-            `;
-            questionsList.appendChild(div);
-        });
-        
-        // 應用程式初始化 (取代 Firebase 連線)
-        function initApp() {
-            // 由於沒有外部連線，可以直接隱藏載入指示器並啟用按鈕
-            document.getElementById('loading-indicator').classList.add('hidden');
-            document.getElementById('submit-button').disabled = false;
-        }
-
-        // 核心分析邏輯 (已移除儲存功能)
-        window.calculateResult = async function() {
-            const btn = document.getElementById('submit-button');
-            const originalBtnText = btn.innerText;
-            
-            btn.disabled = true;
-            btn.innerText = "正在分析數據...";
-
-            const sliders = document.querySelectorAll('.slider');
-            let anxietySum = 0, avoidanceSum = 0;
-            sliders.forEach(s => {
-                const val = parseInt(s.value);
-                if (s.dataset.dimension === 'anxiety') anxietySum += val;
-                else avoidanceSum += val;
-            });
-
-            // --- 依戀屬性分類邏輯 ---
-            // 總分範圍：10 (min) ~ 50 (max)
-            // 轉換為 0% ~ 100% 座標，用於視覺化
-            const anxietyPercent = ((anxietySum - 10) / 40) * 100;
-            const avoidancePercent = ((avoidanceSum - 10) / 40) * 100;
-
-            // 分界點使用 30 (中間值) 作為高/低的標準
-            const isHighAnx = anxietySum > 30; // 31-50
-            const isHighAvd = avoidanceSum > 30; // 31-50
-            
-            let type = "", subtitle = "", color = "";
-
-            if (!isHighAnx && !isHighAvd) {
-                type = "安全型 (Secure)";
-                color = "text-green-600";
-                subtitle = "您擁有正向的自我價值感，並在關係中感到安全與舒適。";
-            } else if (isHighAnx && !isHighAvd) {
-                type = "焦慮型 (Anxious)";
-                color = "text-orange-500";
-                subtitle = "您非常渴望親密，但常因擔心被拋棄而過度投入或擔憂。";
-            } else if (!isHighAnx && isHighAvd) {
-                type = "逃避型 (Avoidant)";
-                color = "text-blue-500";
-                subtitle = "您傾向保持獨立和個人空間，對於過度親密感到不自在。";
-            } else {
-                type = "混亂型 (Disorganized)";
-                color = "text-red-500";
-                subtitle = "您既渴望親密又害怕受傷，內心常有矛盾的拉扯與掙扎。";
-            }
-
-            // 加入「模糊地帶」的註解 (27-33分視為中立區間)
-            let caveat = "";
-            const isBorderline = (score) => Math.abs(score - 30) <= 3; 
-            
-            if (isBorderline(anxietySum) && isBorderline(avoidanceSum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的分數非常接近中心點。這表示您的依戀風格並不明顯，或者您在不同情境下會展現不同特質（屬於安全型邊緣）。請參考上方的「落點座標圖」，紅點越接近十字中心，代表性格越平衡。`;
-            } else if (isBorderline(anxietySum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的「焦慮指數」位於中立區間，這代表您的焦慮特質並不強烈，可能只在特定高壓下才會出現。`;
-            } else if (isBorderline(avoidanceSum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的「迴避指數」位於中立區間，代表您並非完全排斥親密，只是需要一點個人空間，這是很健康的界線。`;
-            }
-
-            // 更新 UI 顯示
-            document.getElementById('result-title').innerText = type;
-            document.getElementById('result-title').className = `text-3xl font-extrabold mt-1 ${color}`;
-            document.getElementById('result-subtitle').innerText = subtitle;
-            document.getElementById('score-anxiety').innerText = anxietySum;
-            document.getElementById('score-avoidance').innerText = avoidanceSum;
-            document.getElementById('result-description').innerHTML = getDetailedDesc(type) + caveat;
-            
-            // 更新座標點位置
-            const dot = document.getElementById('user-dot');
-            dot.style.left = `${avoidancePercent}%`;
-            dot.style.bottom = `${anxietyPercent}%`;
-
-            // 顯示結果 Modal
-            document.getElementById('result-modal').classList.remove('hidden');
-            btn.innerText = originalBtnText; // 恢復按鈕文字
-            btn.disabled = false;
-        };
-
-        window.resetQuiz = function() {
-            document.getElementById('result-modal').classList.add('hidden');
-            document.querySelectorAll('.slider').forEach(s => { 
-                s.value = 3; 
-                // 再次使用穩健的 DOM 存取方式來重置顯示值
-                s.closest('.question-wrapper').querySelector('.output-val').innerText = "3";
-            });
-            window.scrollTo(0,0);
-        };
-
-        function getDetailedDesc(type) {
-            if (type.includes("安全")) return "安全型依戀者通常擁有正向的自我價值感，也信任他人。這不代表您在關係中完全沒有問題，而是您有能力透過溝通與調節情緒來解決衝突，而不會採取過激的抗議行為或冷暴力。";
-            if (type.includes("焦慮")) return "焦慮型依戀者對於「被拋棄」非常敏感。您非常善於察覺伴侶的情緒變化，但有時會過度解讀。您的挑戰在於學習自我安撫，相信「伴侶不在身邊」不等於「他不愛我」。";
-            if (type.includes("逃避")) return "逃避型依戀者將「獨立」視為最高價值。您可能會無意識地壓抑對親密的需求，當伴侶試圖靠近時，您會感到窒息而想逃離。您的挑戰是理解「依賴」並不是軟弱，而是關係的一部分。";
-            return "混亂型依戀者（又稱恐懼-逃避型）內心常有兩股力量在拉扯。您可能在童年經歷過無助的時刻，導致您想靠近人卻又怕受傷。這是一種自我保護機制，建議尋求專業諮商協助，建立內在的安全基地。";
-        }
-
-        window.onload = initApp; // 呼叫新的初始化函數
-    </script>
-</body>
-</html>
-
- text: "發生爭執或情感壓力時，我通常選擇冷靜、退出討論或獨自解決。", dimension: 'avoidance' },
-            { id: 15, text: "我發現很難向伴侶坦白我內心深處的想法或感受。", dimension: 'avoidance' },
-            { id: 16, text: "我常常覺得伴侶對我的要求過多或過於黏膩。", dimension: 'avoidance' },
-            { id: 17, text: "獨處時我感到最舒適自在，比與伴侶在一起更放鬆。", dimension: 'avoidance' },
-            { id: 18, text: "即使我受傷或難過，我也會避免讓伴侶看到我的脆弱。", dimension: 'avoidance' },
-            { id: 19, text: "我會避免討論關係中可能引起情感波動的話題。", dimension: 'avoidance' },
-            { id: 20, text: "我努力讓自己相信，我能夠處理生活中的所有問題，不需要他人幫助。", dimension: 'avoidance' }
-        ];
-
-        // 初始化題目介面
-        const questionsList = document.getElementById('questions-list');
-        questions.forEach(q => {
-            const div = document.createElement('div');
-            // 加上 question-wrapper class，方便 DOM 存取
-            div.className = "bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow question-wrapper"; 
-            div.innerHTML = `
-                <div class="mb-4">
-                    <span class="inline-block px-2 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded mb-2">Q${q.id}</span>
-                    <p class="text-base font-medium text-gray-800">${q.text}</p>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between text-xs text-gray-400 font-bold px-1">
-                        <span>非常不同意 (1)</span>
-                        <span>非常同意 (5)</span>
-                    </div>
-                    <div class="relative flex items-center">
-                        <!-- 修正 DOM 存取方式：使用 closest 和 querySelector 查找目標元素 -->
-                        <input type="range" min="1" max="5" value="3" data-dimension="${q.dimension}" class="slider z-10" 
-                               oninput="this.closest('.question-wrapper').querySelector('.output-val').innerText = this.value">
-                    </div>
-                    <div class="text-center text-indigo-600 font-bold text-lg mt-1 output-val">3</div>
-                </div>
-            `;
-            questionsList.appendChild(div);
-        });
-        
-        // 移除原有的 updateOutput 函式，因為已改為 inline 處理。
-
-        // 初始化 Firebase
-        async function initFirebase() {
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                
-                // 執行登入
-                if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
-                else await signInAnonymously(auth);
-
-                // 監聽登入狀態並啟用按鈕
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        isAuthReady = true;
-                        document.getElementById('loading-indicator').classList.add('hidden');
-                        document.getElementById('submit-button').disabled = false;
-                    }
-                });
-            } catch (e) {
-                console.error("Firebase 連線或登入失敗", e);
-                document.getElementById('loading-indicator').innerText = "連線失敗，結果將不會儲存。";
-                // 即使連線失敗，仍允許使用者計算，只是結果不會儲存
-                document.getElementById('submit-button').disabled = false; 
-            }
-        }
-
-        // 核心分析與儲存邏輯
-        window.calculateAndSaveResult = async function() {
-            const btn = document.getElementById('submit-button');
-            const originalBtnText = btn.innerText;
-            
-            btn.disabled = true;
-            btn.innerText = "正在分析數據...";
-
-            const sliders = document.querySelectorAll('.slider');
-            let anxietySum = 0, avoidanceSum = 0;
-            sliders.forEach(s => {
-                const val = parseInt(s.value);
-                if (s.dataset.dimension === 'anxiety') anxietySum += val;
-                else avoidanceSum += val;
-            });
-
-            // --- 依戀屬性分類邏輯 ---
-            const anxietyPercent = ((anxietySum - 10) / 40) * 100;
-            const avoidancePercent = ((avoidanceSum - 10) / 40) * 100;
-
-            const isHighAnx = anxietySum > 30; // 31-50
-            const isHighAvd = avoidanceSum > 30; // 31-50
-            
-            let type = "", subtitle = "", color = "";
-
-            if (!isHighAnx && !isHighAvd) {
-                type = "安全型 (Secure)";
-                color = "text-green-600";
-                subtitle = "您擁有正向的自我價值感，並在關係中感到安全與舒適。";
-            } else if (isHighAnx && !isHighAvd) {
-                type = "焦慮型 (Anxious)";
-                color = "text-orange-500";
-                subtitle = "您非常渴望親密，但常因擔心被拋棄而過度投入或擔憂。";
-            } else if (!isHighAnx && isHighAvd) {
-                type = "逃避型 (Avoidant)";
-                color = "text-blue-500";
-                subtitle = "您傾向保持獨立和個人空間，對於過度親密感到不自在。";
-            } else {
-                type = "混亂型 (Disorganized)";
-                color = "text-red-500";
-                subtitle = "您既渴望親密又害怕受傷，內心常有矛盾的拉扯與掙扎。";
-            }
-
-            // 加入「模糊地帶」的註解 (27-33分視為中立區間)
-            let caveat = "";
-            const isBorderline = (score) => Math.abs(score - 30) <= 3; 
-            
-            if (isBorderline(anxietySum) && isBorderline(avoidanceSum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的分數非常接近中心點。這表示您的依戀風格並不明顯，或者您在不同情境下會展現不同特質（屬於安全型邊緣）。請參考上方的「落點座標圖」，紅點越接近十字中心，代表性格越平衡。`;
-            } else if (isBorderline(anxietySum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的「焦慮指數」位於中立區間，這代表您的焦慮特質並不強烈，可能只在特定高壓下才會出現。`;
-            } else if (isBorderline(avoidanceSum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的「迴避指數」位於中立區間，代表您並非完全排斥親密，只是需要一點個人空間，這是很健康的界線。`;
-            }
-
-            // 更新 UI 顯示
-            document.getElementById('result-title').innerText = type;
-            document.getElementById('result-title').className = `text-3xl font-extrabold mt-1 ${color}`;
-            document.getElementById('result-subtitle').innerText = subtitle;
-            document.getElementById('score-anxiety').innerText = anxietySum;
-            document.getElementById('score-avoidance').innerText = avoidanceSum;
-            document.getElementById('result-description').innerHTML = getDetailedDesc(type) + caveat;
-            
-            // 更新座標點位置
-            const dot = document.getElementById('user-dot');
-            dot.style.left = `${avoidancePercent}%`;
-            dot.style.bottom = `${anxietyPercent}%`;
-
-            // 儲存資料 (只有在 isAuthReady 時才儲存，避免錯誤)
-            if (isAuthReady) {
-                try {
-                    await addDoc(collection(db, QUIZ_COLLECTION_PATH), {
-                        userId, anxietySum, avoidanceSum, type, timestamp: new Date().toISOString()
-                    });
-                } catch(e) { console.error("資料儲存失敗", e); }
-            }
-
-            // 顯示結果 Modal
-            document.getElementById('result-modal').classList.remove('hidden');
-            btn.innerText = originalBtnText; // 恢復按鈕文字
-            btn.disabled = false;
-        };
-
-        window.resetQuiz = function() {
-            document.getElementById('result-modal').classList.add('hidden');
-            document.querySelectorAll('.slider').forEach(s => { 
-                s.value = 3; 
-                // 再次使用穩健的 DOM 存取方式來重置顯示值
-                s.closest('.question-wrapper').querySelector('.output-val').innerText = "3";
-            });
-            window.scrollTo(0,0);
-        };
-
-        function getDetailedDesc(type) {
-            if (type.includes("安全")) return "安全型依戀者通常擁有正向的自我價值感，也信任他人。這不代表您在關係中完全沒有問題，而是您有能力透過溝通與調節情緒來解決衝突，而不會採取過激的抗議行為或冷暴力。";
-            if (type.includes("焦慮")) return "焦慮型依戀者對於「被拋棄」非常敏感。您非常善於察覺伴侶的情緒變化，但有時會過度解讀。您的挑戰在於學習自我安撫，相信「伴侶不在身邊」不等於「他不愛我」。";
-            if (type.includes("逃避")) return "逃避型依戀者將「獨立」視為最高價值。您可能會無意識地壓抑對親密的需求，當伴侶試圖靠近時，您會感到窒息而想逃離。您的挑戰是理解「依賴」並不是軟弱，而是關係的一部分。";
-            return "混亂型依戀者（又稱恐懼-逃避型）內心常有兩股力量在拉扯。您可能在童年經歷過無助的時刻，導致您想靠近人卻又怕受傷。這是一種自我保護機制，建議尋求專業諮商協助，建立內在的安全基地。";
-        }
-
-        window.onload = initFirebase;
-    </script>
-</body>
-</html>
-
-   { id: 16, text: "我常常覺得伴侶對我的要求過多或過於黏膩。", dimension: 'avoidance' },
-            { id: 17, text: "獨處時我感到最舒適自在，比與伴侶在一起更放鬆。", dimension: 'avoidance' },
-            { id: 18, text: "即使我受傷或難過，我也會避免讓伴侶看到我的脆弱。", dimension: 'avoidance' },
-            { id: 19, text: "我會避免討論關係中可能引起情感波動的話題。", dimension: 'avoidance' },
-            { id: 20, text: "我努力讓自己相信，我能夠處理生活中的所有問題，不需要他人幫助。", dimension: 'avoidance' }
-        ];
-
-        // 初始化題目介面
-        const questionsList = document.getElementById('questions-list');
-        questions.forEach(q => {
-            const div = document.createElement('div');
-            div.className = "bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow";
-            div.innerHTML = `
-                <div class="mb-4">
-                    <span class="inline-block px-2 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded mb-2">Q${q.id}</span>
-                    <p class="text-base font-medium text-gray-800">${q.text}</p>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between text-xs text-gray-400 font-bold px-1">
-                        <span>非常不同意</span>
-                        <span>非常同意</span>
-                    </div>
-                    <div class="relative flex items-center">
-                        <input type="range" min="1" max="5" value="3" data-dimension="${q.dimension}" class="slider z-10" oninput="updateOutput(this)">
-                    </div>
-                    <div class="text-center text-indigo-600 font-bold text-lg mt-1 output-val">3</div>
-                </div>
-            `;
-            questionsList.appendChild(div);
-        });
-
-        window.updateOutput = function(el) {
-            el.parentElement.nextElementSibling.innerText = el.value;
-        }
-
-        // 初始化 Firebase (移除人數統計邏輯，僅保留登入)
-        async function initFirebase() {
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                
-                if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
-                else await signInAnonymously(auth);
-
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        isAuthReady = true;
-                        document.getElementById('loading-indicator').classList.add('hidden');
-                        document.getElementById('submit-button').disabled = false;
-                        // 注意：此處已完全移除 updateCount 的呼叫，避免錯誤
-                    }
-                });
-            } catch (e) {
-                console.error("Firebase Error", e);
-                document.getElementById('loading-indicator').innerText = "連線失敗，功能受限。";
-            }
-        }
-
-        // 核心分析與儲存邏輯
-        window.calculateAndSaveResult = async function() {
-            if (!isAuthReady) {
-                // 若未連線成功，仍允許計算顯示結果，但不儲存
-                console.warn("未連線至資料庫，僅顯示本機結果");
-            }
-            
-            const btn = document.getElementById('submit-button');
-            btn.disabled = true;
-            btn.innerText = "正在分析數據...";
-
-            const sliders = document.querySelectorAll('.slider');
-            let anxietySum = 0, avoidanceSum = 0;
-            sliders.forEach(s => {
-                const val = parseInt(s.value);
-                if (s.dataset.dimension === 'anxiety') anxietySum += val;
-                else avoidanceSum += val;
-            });
-
-            // --- 修正後的邏輯 ---
-            // 滿分 50，最低 10。
-            // 座標化：將分數轉換為 0% ~ 100% 的位置
-            // 10分 -> 0%, 30分 -> 50%, 50分 -> 100%
-            const anxietyPercent = ((anxietySum - 10) / 40) * 100;
-            const avoidancePercent = ((avoidanceSum - 10) / 40) * 100;
-
-            // 嚴格判定：大於 30 才算高 (31分以上)
-            // 模糊地帶：27-33 分之間視為「中度」或「傾向不明顯」
-            const isHighAnx = anxietySum > 30;
-            const isHighAvd = avoidanceSum > 30;
-            
-            let type = "", subtitle = "";
-            let color = "";
-
-            if (!isHighAnx && !isHighAvd) {
-                type = "安全型 (Secure)";
-                color = "text-green-600";
-                subtitle = "您在關係中感到舒適與安全，能平衡獨立與親密。";
-            } else if (isHighAnx && !isHighAvd) {
-                type = "焦慮型 (Anxious)";
-                color = "text-orange-500";
-                subtitle = "您渴望親密，但常擔心被對方拋棄或不夠愛自己。";
-            } else if (!isHighAnx && isHighAvd) {
-                type = "逃避型 (Avoidant)";
-                color = "text-blue-500";
-                subtitle = "您傾向保持距離與獨立，對於過度親密感到不自在。";
-            } else {
-                type = "混亂型 (Disorganized)";
-                color = "text-red-500";
-                subtitle = "您既渴望親密又害怕受傷，內心常處於矛盾與掙扎中。";
-            }
-
-            // 加入「模糊地帶」的註解，解決「不準確」的抱怨
-            let caveat = "";
-            const isBorderline = (score) => Math.abs(score - 30) <= 3; // 27-33分
-            
-            if (isBorderline(anxietySum) && isBorderline(avoidanceSum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的分數非常接近中心點。這表示您的依戀風格並不明顯，或者您在不同情境下會展現不同特質（屬於安全型邊緣）。請參考上方的「落點座標圖」，紅點越接近十字中心，代表性格越平衡。`;
-            } else if (isBorderline(anxietySum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的「焦慮指數」位於中立區間，這代表您的焦慮特質並不強烈，可能只在特定高壓下才會出現。`;
-            } else if (isBorderline(avoidanceSum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的「迴避指數」位於中立區間，代表您並非完全排斥親密，只是需要一點個人空間，這是很健康的界線。`;
-            }
-
-            // 更新 UI 顯示
-            document.getElementById('result-title').innerText = type;
-            document.getElementById('result-title').className = `text-3xl font-extrabold mt-1 ${color}`;
-            document.getElementById('result-subtitle').innerText = subtitle;
-            document.getElementById('score-anxiety').innerText = anxietySum;
-            document.getElementById('score-avoidance').innerText = avoidanceSum;
-            document.getElementById('result-description').innerHTML = getDetailedDesc(type) + caveat;
-            
-            // 更新座標點位置
-            // X軸: 迴避 (左低右高) -> left: avoidancePercent%
-            // Y軸: 焦慮 (下低上高) -> bottom: anxietyPercent%
-            const dot = document.getElementById('user-dot');
-            dot.style.left = `${avoidancePercent}%`;
-            dot.style.bottom = `${anxietyPercent}%`;
-
-            // 儲存資料 (只儲存，不讀取人數)
-            if (isAuthReady) {
-                try {
-                    await addDoc(collection(db, QUIZ_COLLECTION_PATH), {
-                        userId, anxietySum, avoidanceSum, type, timestamp: new Date().toISOString()
-                    });
-                } catch(e) { console.error("儲存失敗", e); }
-            }
-
-            // 顯示結果 Modal
-            document.getElementById('result-modal').classList.remove('hidden');
-            btn.innerText = "查看詳細分析報告";
-            btn.disabled = false;
-        };
-
-        window.resetQuiz = function() {
-            document.getElementById('result-modal').classList.add('hidden');
-            document.querySelectorAll('.slider').forEach(s => { 
-                s.value = 3; 
-                s.parentElement.nextElementSibling.innerText = "3"; 
-            });
-            window.scrollTo(0,0);
-        };
-
-        function getDetailedDesc(type) {
-            if (type.includes("安全")) return "安全型依戀者通常擁有正向的自我價值感，也信任他人。這不代表您在關係中完全沒有問題，而是您有能力透過溝通與調節情緒來解決衝突，而不會採取過激的抗議行為或冷暴力。";
-            if (type.includes("焦慮")) return "焦慮型依戀者對於「被拋棄」非常敏感。您非常善於察覺伴侶的情緒變化，但有時會過度解讀。您的挑戰在於學習自我安撫，相信「伴侶不在身邊」不等於「他不愛我」。";
-            if (type.includes("逃避")) return "逃避型依戀者將「獨立」視為最高價值。您可能會無意識地壓抑對親密的需求，當伴侶試圖靠近時，您會感到窒息而想逃離。您的挑戰是理解「依賴」並不是軟弱，而是關係的一部分。";
-            return "混亂型依戀者（又稱恐懼-逃避型）內心常有兩股力量在拉扯。您可能在童年經歷過無助的時刻，導致您想靠近人卻又怕受傷。這是一種自我保護機制，建議尋求專業諮商協助，建立內在的安全基地。";
-        }
-
-        window.onload = initFirebase;
-    </script>
-</body>
-</html>
-
-  { id: 16, text: "我常常覺得伴侶對我的要求過多或過於黏膩。", dimension: 'avoidance' },
-            { id: 17, text: "獨處時我感到最舒適自在，比與伴侶在一起更放鬆。", dimension: 'avoidance' },
-            { id: 18, text: "即使我受傷或難過，我也會避免讓伴侶看到我的脆弱。", dimension: 'avoidance' },
-            { id: 19, text: "我會避免討論關係中可能引起情感波動的話題。", dimension: 'avoidance' },
-            { id: 20, text: "我努力讓自己相信，我能夠處理生活中的所有問題，不需要他人幫助。", dimension: 'avoidance' }
-        ];
-
-        // 初始化題目介面
-        const questionsList = document.getElementById('questions-list');
-        questions.forEach(q => {
-            const div = document.createElement('div');
-            div.className = "bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow";
-            div.innerHTML = `
-                <div class="mb-4">
-                    <span class="inline-block px-2 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded mb-2">Q${q.id}</span>
-                    <p class="text-base font-medium text-gray-800">${q.text}</p>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between text-xs text-gray-400 font-bold px-1">
-                        <span>非常不同意</span>
-                        <span>非常同意</span>
-                    </div>
-                    <div class="relative flex items-center">
-                        <input type="range" min="1" max="5" value="3" data-dimension="${q.dimension}" class="slider z-10" oninput="updateOutput(this)">
-                    </div>
-                    <div class="text-center text-indigo-600 font-bold text-lg mt-1 output-val">3</div>
-                </div>
-            `;
-            questionsList.appendChild(div);
-        });
-
-        window.updateOutput = function(el) {
-            el.parentElement.nextElementSibling.innerText = el.value;
-        }
-
-        // 初始化 Firebase (移除人數統計邏輯，僅保留登入)
-        async function initFirebase() {
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                
-                if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
-                else await signInAnonymously(auth);
-
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        isAuthReady = true;
-                        document.getElementById('loading-indicator').classList.add('hidden');
-                        document.getElementById('submit-button').disabled = false;
-                        // 注意：此處已完全移除 updateCount 的呼叫，避免錯誤
-                    }
-                });
-            } catch (e) {
-                console.error("Firebase Error", e);
-                document.getElementById('loading-indicator').innerText = "連線失敗，功能受限。";
-            }
-        }
-
-        // 核心分析與儲存邏輯
-        window.calculateAndSaveResult = async function() {
-            if (!isAuthReady) {
-                // 若未連線成功，仍允許計算顯示結果，但不儲存
-                console.warn("未連線至資料庫，僅顯示本機結果");
-            }
-            
-            const btn = document.getElementById('submit-button');
-            btn.disabled = true;
-            btn.innerText = "正在分析數據...";
-
-            const sliders = document.querySelectorAll('.slider');
-            let anxietySum = 0, avoidanceSum = 0;
-            sliders.forEach(s => {
-                const val = parseInt(s.value);
-                if (s.dataset.dimension === 'anxiety') anxietySum += val;
-                else avoidanceSum += val;
-            });
-
-            // --- 修正後的邏輯 ---
-            // 滿分 50，最低 10。
-            // 座標化：將分數轉換為 0% ~ 100% 的位置
-            // 10分 -> 0%, 30分 -> 50%, 50分 -> 100%
-            const anxietyPercent = ((anxietySum - 10) / 40) * 100;
-            const avoidancePercent = ((avoidanceSum - 10) / 40) * 100;
-
-            // 嚴格判定：大於 30 才算高 (31分以上)
-            // 模糊地帶：27-33 分之間視為「中度」或「傾向不明顯」
-            const isHighAnx = anxietySum > 30;
-            const isHighAvd = avoidanceSum > 30;
-            
-            let type = "", subtitle = "";
-            let color = "";
-
-            if (!isHighAnx && !isHighAvd) {
-                type = "安全型 (Secure)";
-                color = "text-green-600";
-                subtitle = "您在關係中感到舒適與安全，能平衡獨立與親密。";
-            } else if (isHighAnx && !isHighAvd) {
-                type = "焦慮型 (Anxious)";
-                color = "text-orange-500";
-                subtitle = "您渴望親密，但常擔心被對方拋棄或不夠愛自己。";
-            } else if (!isHighAnx && isHighAvd) {
-                type = "逃避型 (Avoidant)";
-                color = "text-blue-500";
-                subtitle = "您傾向保持距離與獨立，對於過度親密感到不自在。";
-            } else {
-                type = "混亂型 (Disorganized)";
-                color = "text-red-500";
-                subtitle = "您既渴望親密又害怕受傷，內心常處於矛盾與掙扎中。";
-            }
-
-            // 加入「模糊地帶」的註解，解決「不準確」的抱怨
-            let caveat = "";
-            const isBorderline = (score) => Math.abs(score - 30) <= 3; // 27-33分
-            
-            if (isBorderline(anxietySum) && isBorderline(avoidanceSum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的分數非常接近中心點。這表示您的依戀風格並不明顯，或者您在不同情境下會展現不同特質（屬於安全型邊緣）。請參考上方的「落點座標圖」，紅點越接近十字中心，代表性格越平衡。`;
-            } else if (isBorderline(anxietySum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的「焦慮指數」位於中立區間，這代表您的焦慮特質並不強烈，可能只在特定高壓下才會出現。`;
-            } else if (isBorderline(avoidanceSum)) {
-                caveat = `<br><br><strong class="text-indigo-600">💡 黑森林大叔筆記：</strong> 您的「迴避指數」位於中立區間，代表您並非完全排斥親密，只是需要一點個人空間，這是很健康的界線。`;
-            }
-
-            // 更新 UI 顯示
-            document.getElementById('result-title').innerText = type;
-            document.getElementById('result-title').className = `text-3xl font-extrabold mt-1 ${color}`;
-            document.getElementById('result-subtitle').innerText = subtitle;
-            document.getElementById('score-anxiety').innerText = anxietySum;
-            document.getElementById('score-avoidance').innerText = avoidanceSum;
-            document.getElementById('result-description').innerHTML = getDetailedDesc(type) + caveat;
-            
-            // 更新座標點位置
-            // X軸: 迴避 (左低右高) -> left: avoidancePercent%
-            // Y軸: 焦慮 (下低上高) -> bottom: anxietyPercent%
-            const dot = document.getElementById('user-dot');
-            dot.style.left = `${avoidancePercent}%`;
-            dot.style.bottom = `${anxietyPercent}%`;
-
-            // 儲存資料 (只儲存，不讀取人數)
-            if (isAuthReady) {
-                try {
-                    await addDoc(collection(db, QUIZ_COLLECTION_PATH), {
-                        userId, anxietySum, avoidanceSum, type, timestamp: new Date().toISOString()
-                    });
-                } catch(e) { console.error("儲存失敗", e); }
-            }
-
-            // 顯示結果 Modal
-            document.getElementById('result-modal').classList.remove('hidden');
-            btn.innerText = "查看詳細分析報告";
-            btn.disabled = false;
-        };
-
-        window.resetQuiz = function() {
-            document.getElementById('result-modal').classList.add('hidden');
-            document.querySelectorAll('.slider').forEach(s => { 
-                s.value = 3; 
-                s.parentElement.nextElementSibling.innerText = "3"; 
-            });
-            window.scrollTo(0,0);
-        };
-
-        function getDetailedDesc(type) {
-            if (type.includes("安全")) return "安全型依戀者通常擁有正向的自我價值感，也信任他人。這不代表您在關係中完全沒有問題，而是您有能力透過溝通與調節情緒來解決衝突，而不會採取過激的抗議行為或冷暴力。";
-            if (type.includes("焦慮")) return "焦慮型依戀者對於「被拋棄」非常敏感。您非常善於察覺伴侶的情緒變化，但有時會過度解讀。您的挑戰在於學習自我安撫，相信「伴侶不在身邊」不等於「他不愛我」。";
-            if (type.includes("逃避")) return "逃避型依戀者將「獨立」視為最高價值。您可能會無意識地壓抑對親密的需求，當伴侶試圖靠近時，您會感到窒息而想逃離。您的挑戰是理解「依賴」並不是軟弱，而是關係的一部分。";
-            return "混亂型依戀者（又稱恐懼-逃避型）內心常有兩股力量在拉扯。您可能在童年經歷過無助的時刻，導致您想靠近人卻又怕受傷。這是一種自我保護機制，建議尋求專業諮商協助，建立內在的安全基地。";
-        }
-
-        window.onload = initFirebase;
+        window.onload = initQuiz;
     </script>
 </body>
 </html>
